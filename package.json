@@ -4,13 +4,24 @@
     "private": true,
     "scripts": {
         "dev": "next dev -p 8080",
-        "build": "next build",
+        "build": "prisma generate && next build",
         "start": "next start",
-        "lint": "next lint"
+        "lint": "next lint",
+        "postinstall": "prisma generate",
+        "db:push": "prisma db push",
+        "db:studio": "prisma studio",
+        "db:seed": "node prisma/seed.js"
     },
     "dependencies": {
+        "@prisma/client": "^6.2.0",
+        "bcryptjs": "^2.4.3",
         "next": "^16.2.4",
         "react": "^19.2.0",
-        "react-dom": "^19.2.0"
+        "react-dom": "^19.2.0",
+        "recharts": "^3.0.0"
+    },
+    "devDependencies": {
+        "@netlify/plugin-nextjs": "^5.9.0",
+        "prisma": "^6.2.0"
     }
 }

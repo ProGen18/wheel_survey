@@ -7,6 +7,7 @@ import { SURVEY, getActiveParts } from '../components/survey-data';
 import { WheelLogo, HeroWheel, Arrow, Sprocket, StampMark } from '../components/icons';
 import { QuestionBlock, isAnswered } from '../components/questions';
 import { useTweaks, TweaksPanel, TweakSection, TweakRadio } from '../components/tweaks-panel';
+import ReferralEndCard from '../components/survey/ReferralEndCard';
 
 
 /* ---------------- PROGRESS RING ---------------- */
@@ -385,6 +386,22 @@ export default function App() {
   const [submitted, setSubmitted] = useState(false);
   const [topbarVisible, setTopbarVisible] = useState(false);
 
+  // Autosave / referral
+  const [sessionToken, setSessionToken] = useState(null);
+  const [referralCode, setReferralCode] = useState(null);
+  const [referralLink, setReferralLink] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const startedRef = useRef(false);
+  const answersRef = useRef(answers);
+  const filterRef = useRef(filter);
+  const tokenRef = useRef(null);
+  const parentCodeRef = useRef(null);
+
+  // Keep refs in sync
+  answersRef.current = answers;
+  filterRef.current = filter;
+  tokenRef.current = sessionToken;
+
   // Scroll watcher — reveal topbar & progress ring after hero
   useEffect(() => {
     const onScroll = () => setTopbarVisible(window.scrollY > 200);
@@ -398,6 +415,116 @@ export default function App() {
     document.documentElement.dataset.font = font;
     document.documentElement.dataset.density = density;
   }, [theme, font, density]);
+
+  // ---- Referral / auto-save lifecycle ----
+
+  // On mount: handle ?ref= param
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const refCode = params.get('ref')?.trim();
+    if (refCode) {
+      // Fire-and-forget visit count
+      fetch('/api/ref/visit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: refCode }),
+      }).catch(() => {});
+      // Validate
+      fetch('/api/ref/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: refCode }),
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.valid) {
+            parentCodeRef.current = refCode;
+            try { sessionStorage.setItem('gyro_parentCode', refCode); } catch (_) {}
+          }
+        })
+        .catch(() => {});
+    } else {
+      const stored = (() => { try { return sessionStorage.getItem('gyro_parentCode'); } catch (_) { return null; } })();
+      if (stored) parentCodeRef.current = stored;
+    }
+  }, []);
+
+  // Auto-start survey when filter is first chosen
+  useEffect(() => {
+    if (!filter || startedRef.current) return;
+    startedRef.current = true;
+
+    (async () => {
+      try {
+        const res = await fetch('/api/survey/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            lang,
+            parentCode: parentCodeRef.current || undefined,
+            filterValue: filter,
+            userAgent: navigator.userAgent,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setSessionToken(data.sessionToken);
+          setReferralCode(data.referralCode);
+          setReferralLink(data.referralLink);
+          try { sessionStorage.setItem('gyro_token', data.sessionToken); } catch (_) {}
+        }
+      } catch (_) {}
+    })();
+  }, [filter]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const apiUrl = '/api/survey';
+
+  // Save helper
+  const doSave = useCallback((token, currentAnswers, currentFilter) => {
+    if (!token) return;
+    return fetch(`${apiUrl}/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionToken: token,
+        answers: currentAnswers,
+        filterValue: currentFilter,
+      }),
+    }).catch(() => {});
+  }, [apiUrl]);
+
+  // Auto-save on answers change (debounce 800ms)
+  useEffect(() => {
+    if (!sessionToken || !filter) return;
+    setSaving(true);
+    const timer = setTimeout(() => {
+      doSave(sessionToken, answersRef.current, filterRef.current).finally(() => setSaving(false));
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [answers, sessionToken, filter, doSave]);
+
+  // SendBeacon on page hide / visibility change
+  useEffect(() => {
+    const flush = () => {
+      const t = tokenRef.current;
+      const a = answersRef.current;
+      const f = filterRef.current;
+      if (!t || !f) return;
+      const body = new Blob([JSON.stringify({
+        sessionToken: t,
+        answers: a,
+        filterValue: f,
+      })], { type: 'application/json' });
+      navigator.sendBeacon(`${apiUrl}/save`, body);
+    };
+    const onVis = () => { if (document.visibilityState === 'hidden') flush(); };
+    document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('pagehide', flush);
+    return () => {
+      document.removeEventListener('visibilitychange', onVis);
+      window.removeEventListener('pagehide', flush);
+    };
+  }, [apiUrl]);
 
   const activePartIds = useMemo(() => filter ? getActiveParts(filter) : [], [filter]);
   const activeParts = useMemo(
@@ -437,8 +564,24 @@ export default function App() {
     }, 60);
   };
 
-  const handleAdvance = (currentIdx) => {
+  const handleAdvance = useCallback(async (currentIdx) => {
     if (currentIdx + 1 >= activeParts.length) {
+      // Complete survey
+      const t = tokenRef.current;
+      if (t) {
+        try {
+          const res = await fetch('/api/survey/complete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionToken: t }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setReferralCode(data.referralCode);
+            setReferralLink(data.referralLink);
+          }
+        } catch (_) {}
+      }
       setSubmitted(true);
       setTimeout(() => {
         document.getElementById("end")?.scrollIntoView({ behavior: "smooth" });
@@ -449,13 +592,18 @@ export default function App() {
         document.getElementById(`part-${currentIdx + 1}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 60);
     }
-  };
+  }, [activeParts]);
 
   const handleReset = () => {
     setFilter(null);
     setAnswers({});
     setUnlockedPartIdx(-1);
     setSubmitted(false);
+    setSessionToken(null);
+    setReferralCode(null);
+    setReferralLink(null);
+    startedRef.current = false;
+    try { sessionStorage.removeItem('gyro_token'); sessionStorage.removeItem('gyro_parentCode'); } catch (_) {}
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -521,7 +669,16 @@ export default function App() {
 
       {submitted &&
         <div id="end">
-          <EndCard lang={lang} onReset={handleReset} answers={answers} />
+          {referralLink ? (
+            <ReferralEndCard
+              lang={lang}
+              referralCode={referralCode}
+              referralLink={referralLink}
+              onReset={handleReset}
+            />
+          ) : (
+            <EndCard lang={lang} onReset={handleReset} answers={answers} />
+          )}
         </div>
       }
 

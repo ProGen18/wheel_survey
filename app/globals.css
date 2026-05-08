@@ -1599,3 +1599,59 @@ body::before {
   .choice { padding: 0.6rem 0.55rem; font-size: 0.9rem; }
   .end-card { padding: 1.5rem 0.25rem; }
 }
+
+/* ---- Referral End Card ---- */
+.ref-end-card {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+.ref-end-card .display-l { font-size: 2rem; margin-bottom: 0.5rem; }
+.ref-end-card .lede { max-width: 45ch; margin: 0 auto; color: var(--hint, #666); }
+.ref-link-box {
+  background: var(--card-bg, #fafaf9);
+  border: 1px solid var(--rule, #e0dcd4);
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 480px;
+}
+.ref-label { font-weight: 600; margin-bottom: 0.75rem; color: var(--ink); }
+.ref-input-row { display: flex; gap: 0.5rem; }
+.ref-link-input {
+  flex: 1;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--rule, #d4cfc8);
+  border-radius: 8px;
+  background: var(--bg, #fff);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--ink);
+  min-width: 0;
+}
+.ref-link-input:focus { outline: 2px solid var(--ember); outline-offset: 1px; }
+.ref-copy-btn {
+  white-space: nowrap;
+  padding: 0.65rem 1.25rem;
+  font-size: 0.9rem;
+}
+.ref-copied-toast {
+  font-size: 0.85rem;
+  color: var(--teal);
+  font-weight: 600;
+  margin-top: 0.35rem;
+  display: inline-block;
+}
+.ref-code-info { font-size: 0.85rem; color: var(--hint, #666); margin-top: 0.5rem; }
+.ref-note {
+  font-size: 0.8rem;
+  color: var(--hint, #888);
+  max-width: 48ch;
+  margin: 0 auto;
+  line-height: 1.5;
+}

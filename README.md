@@ -31,10 +31,13 @@ Gyroroue est un questionnaire interactif à **révélation progressive** : les s
 | UI               | [React 19](https://react.dev/)                         |
 | Styles           | CSS vanilla (custom properties, `@media`, animations)  |
 | Typographie      | Crimson Pro, Instrument Serif, Inter Tight, JetBrains Mono |
-| Build            | `next build` (Turbopack)                               |
-| Runtime          | Node.js                                                |
-
-Aucune dependance externe au-dela de Next.js et React.
+| Base de donnees  | [Supabase Postgres](https://supabase.com/) (via pooler pgbouncer) |
+| ORM              | [Prisma 6](https://www.prisma.io/)                     |
+| Charts admin     | [Recharts 3](https://recharts.org/)                    |
+| Auth admin       | bcryptjs + cookie HMAC-SHA256 (Web Crypto)             |
+| Hebergement      | [Netlify](https://www.netlify.com/) (App Router + Functions) |
+| Build            | `prisma generate && next build`                        |
+| Runtime          | Node.js (API), Edge (middleware d'auth)                |
 
 ---
 
@@ -210,6 +213,103 @@ Editer `SURVEY.parts[].shows` dans `survey-data.js`. La fonction `getActiveParts
 ### Ajouter une langue
 
 Voir la section [Internationalisation](#internationalisation) ci-dessus.
+
+---
+
+## Deploiement (Supabase + Netlify)
+
+### 1. Creer le projet Supabase
+
+1. Aller sur [supabase.com](https://supabase.com/) → **New project**
+2. Choisir une region proche des utilisateurs (ex. `eu-west-3` Paris)
+3. Une fois cree, ouvrir **Project Settings → Database → Connection string**
+4. Recuperer **deux** chaines de connexion :
+   - **Connection pooling** (port 6543, mode `transaction`) → c'est `DATABASE_URL`
+     - Ajouter `?pgbouncer=true&connection_limit=1` a la fin
+   - **Direct connection** (port 5432) → c'est `DIRECT_URL` (utilise uniquement par les migrations Prisma)
+
+> Le pooler pgbouncer est **indispensable** sur Netlify Functions : sans lui, les connexions Postgres saturent vite.
+
+### 2. Configurer les variables locales
+
+```bash
+cp .env.example .env.local
+```
+
+Remplir `.env.local` avec les deux URLs Supabase, puis generer les secrets admin :
+
+```bash
+# Hash du mot de passe admin (cout 12)
+node -e "require('bcryptjs').hash('mon-mot-de-passe-admin', 12).then(console.log)"
+
+# Secret de signature de cookie (>= 32 chars)
+node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+```
+
+Coller le hash dans `ADMIN_PASSWORD_HASH` et le secret dans `ADMIN_SESSION_SECRET`.
+
+### 3. Initialiser le schema
+
+```bash
+npm install
+npx prisma db push          # cree les tables ReferralNode + SurveyResponse
+npm run db:seed             # peuple 3 influenceurs + 18 repondants de demo (optionnel)
+```
+
+Verifier dans Supabase → **Table Editor** que les deux tables existent.
+
+### 4. Lancer en local
+
+```bash
+npm run dev
+# http://localhost:8080            ← questionnaire public
+# http://localhost:8080/admin      ← dashboard admin (login requis)
+```
+
+### 5. Deployer sur Netlify
+
+1. Pousser le code sur GitHub
+2. Sur [Netlify](https://www.netlify.com/) → **Add new site → Import from Git**
+3. Configurer la build :
+   - **Build command** : `npx prisma generate && npm run build` (deja dans `netlify.toml`)
+   - **Publish directory** : `.next`
+4. **Site Settings → Environment variables**, ajouter :
+
+| Cle                       | Valeur                                                 |
+| ------------------------- | ------------------------------------------------------ |
+| `DATABASE_URL`            | URL pooler Supabase avec `?pgbouncer=true&connection_limit=1` |
+| `DIRECT_URL`              | URL directe Supabase (port 5432)                       |
+| `ADMIN_PASSWORD_HASH`     | Hash bcrypt genere ci-dessus                           |
+| `ADMIN_SESSION_SECRET`    | Secret aleatoire >= 32 chars                           |
+| `NEXT_PUBLIC_BASE_URL`    | URL publique Netlify (ex. `https://gyroroue.netlify.app`) |
+| `REFERRAL_EXPIRY_DAYS`    | `90` (ou autre)                                        |
+
+5. **Deploys → Trigger deploy** → Netlify detecte le plugin `@netlify/plugin-nextjs` et build automatiquement
+6. La premiere fois, lancer `npx prisma db push` depuis local (ou via la console Supabase) si non fait
+
+### 6. Verification post-deploiement
+
+- Page d'accueil → repondre Q1 → verifier dans Supabase qu'un `SurveyResponse` apparait avec `completedAt = NULL`
+- `/admin/login` → mot de passe → acces au dashboard
+- Creer un influenceur, tester le lien `/?ref=CODE`, verifier la chaine dans `/admin/respondents/[id]`
+
+---
+
+## Backend & dashboard admin
+
+L'application embarque :
+
+- **Auto-save serveur** : chaque reponse est persistee en temps reel (debounce 800 ms + `navigator.sendBeacon` au unload). Aucune donnee perdue en cas d'abandon.
+- **Systeme de parrainage viral** : codes influenceurs (manuels) + codes repondants (auto-generes), arbre hierarchique illimite via CTE recursifs Postgres.
+- **Dashboard admin** protege par cookie HMAC, accessible sur `/admin` :
+  - Vue d'ensemble (KPIs + graphiques 30 jours)
+  - Gestion des liens influenceurs et repondants (revoquer / regenerer)
+  - Arbre de parrainage par influenceur (`TreeView`)
+  - Chaine ascendante par repondant (`ChainView`)
+  - Statistiques detaillees par question (33 questions, heatmaps, radars MCI, croisements)
+  - Exports CSV streames (toutes reponses + filleuls par influenceur)
+
+Pas d'envoi d'email, pas de multi-admin, pas de tracking externe : peripherique deliberement minimal.
 
 ---
 

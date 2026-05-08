@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum NodeType {
+  INFLUENCER
+  RESPONDENT
+}
+
+model ReferralNode {
+  id         String         @id @default(cuid())
+  code       String         @unique
+  nodeType   NodeType
+  label      String?
+  lang       String         @default("fr")
+  parentId   String?
+  parent     ReferralNode?  @relation("ReferralTree", fields: [parentId], references: [id])
+  children   ReferralNode[] @relation("ReferralTree")
+  visitCount Int            @default(0)
+  isActive   Boolean        @default(true)
+  createdAt  DateTime       @default(now())
+  expiresAt  DateTime?
+
+  response SurveyResponse?
+
+  @@index([parentId])
+  @@index([code])
+  @@index([nodeType])
+  @@index([createdAt])
+}
+
+model SurveyResponse {
+  id     String       @id @default(cuid())
+  nodeId String       @unique
+  node   ReferralNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  startedAt    DateTime  @default(now())
+  lastSavedAt  DateTime  @updatedAt
+  completedAt  DateTime?
+  sessionToken String    @unique
+  userAgent    String?
+  ipHash       String?
+
+  filterValue String?
+
+  discovChannels Json?
+  socialExposure String?
+
+  adoptYear          Int?
+  acquisitionMode    String?
+  priceCat           String?
+  adoptDelay         String?
+  discount           String?
+  learningTime       String?
+  tutorials          String?
+  learningDifficulty Int?
+
+  weeklyDistance   String?
+  mainUse          String?
+  transportReplace String?
+  carAccess        String?
+  comparison       Json?
+
+  limitingFactors     Json?
+  protections         Json?
+  regulationStatus    String?
+  regulationInfluence String?
+  regulationRenounced String?
+
+  socialCircle    String?
+  groupRides      String?
+  onlineCommunity String?
+
+  perception       Json?
+  futureLikelihood String?
+  barriers         Json?
+
+  hedonic      Json?
+  instrumental Json?
+  socialMci    Json?
+  symbolic     Json?
+  cognitive    Json?
+
+  age        Int?
+  gender     String?
+  country    String?
+  citySize   String?
+  occupation String?
+  income     String?
+
+  @@index([completedAt])
+  @@index([startedAt])
+  @@index([filterValue])
+  @@index([country])
+}
