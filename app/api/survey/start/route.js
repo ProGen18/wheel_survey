@@ -57,7 +57,7 @@ export async function POST(req) {
   return NextResponse.json({
     sessionToken,
     referralCode: code,
-    referralLink: buildReferralLink(code),
+    referralLink: buildReferralLink(code, req),
     nodeId: node.id,
   }, { status: 201 });
 }

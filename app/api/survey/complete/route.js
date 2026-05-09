@@ -39,6 +39,6 @@ export async function POST(req) {
 
   return NextResponse.json({
     referralCode: response.node.code,
-    referralLink: buildReferralLink(response.node.code),
+    referralLink: buildReferralLink(response.node.code, req),
   });
 }

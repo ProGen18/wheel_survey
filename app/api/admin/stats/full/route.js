@@ -85,6 +85,7 @@ function jsonMeans(rows, field) {
 }
 
 export async function GET(req) {
+  try {
   const where = buildWhere(req.nextUrl.searchParams);
 
   const groupByPromises = SCALAR_FIELDS.map((field) =>
@@ -248,6 +249,10 @@ export async function GET(req) {
     crossTabMciProfile: mciByProfile,
     crossTabAgeProfile: buildCrossTab(jsonRows, 'age', false, true),
   });
+  } catch (err) {
+    console.error('[stats/full] error:', err);
+    return NextResponse.json({ error: 'stats_failed', message: err.message }, { status: 500 });
+  }
 }
 
 function buildCrossTab(rows, field, multi = false, isAge = false) {

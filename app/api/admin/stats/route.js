@@ -5,6 +5,7 @@ import { safeJson } from '@/lib/json';
 export const runtime = 'nodejs';
 
 export async function GET() {
+  try {
   const now = new Date();
   const thirtyDaysAgo = new Date(now - 30 * 86400000);
   const sevenDaysAgo = new Date(now - 7 * 86400000);
@@ -127,4 +128,8 @@ export async function GET() {
     })),
     q1Dist,
   });
+  } catch (err) {
+    console.error('[stats] error:', err);
+    return NextResponse.json({ error: 'stats_failed', message: err.message }, { status: 500 });
+  }
 }
