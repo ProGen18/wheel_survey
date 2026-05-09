@@ -50,7 +50,7 @@ export async function POST(req) {
   }
 
   const { password } = body;
-  const expected = process.env.ADMIN_PASSWORD;
+  const expected = process.env.ADMIN_PASSWORD_HASH;
 
   if (!expected) {
     return NextResponse.json({ error: 'not_configured' }, { status: 500 });
