@@ -11,13 +11,17 @@ export default function CookieBanner() {
   const pathname = usePathname();
   const isRgpdPage = pathname === '/rgpd';
 
-  const [lang, setLang] = useState('fr');
+  const [lang, setLang] = useState('en');
   const [showPanel, setShowPanel] = useState(false);
   const [analyticsOpt, setAnalyticsOpt] = useState(false);
 
   useEffect(() => {
-    const docLang = document.documentElement.lang;
-    if (docLang && I18N[docLang]) setLang(docLang);
+    const supported = Object.keys(I18N).filter((k) => I18N[k]?.cookies);
+    const browserLangs = navigator.languages?.length ? navigator.languages : [navigator.language];
+    for (const bl of browserLangs) {
+      const code = bl.split('-')[0].toLowerCase();
+      if (supported.includes(code)) { setLang(code); return; }
+    }
   }, []);
 
   const blocking = consent !== 'accepted' && !isRgpdPage;
