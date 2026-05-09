@@ -5,11 +5,41 @@ import { useTweaks, TweaksPanel, TweakSection, TweakRadio } from './tweaks-panel
 export { useTweaks };
 
 export const TWEAK_DEFAULTS = {
-  lang: 'fr',
+  lang: 'en',
   font: 'serif',
   density: 'default',
   theme: 'light',
 };
+
+const SUPPORTED_LANGS = ['fr', 'en', 'ru', 'zh'];
+
+function detectBrowserLang() {
+  if (typeof navigator === 'undefined') return 'en';
+  const langs = navigator.languages?.length ? navigator.languages : [navigator.language];
+  for (const bl of langs) {
+    const code = bl.split('-')[0].toLowerCase();
+    if (SUPPORTED_LANGS.includes(code)) return code;
+  }
+  return 'en';
+}
+
+// Comme useTweaks mais détecte la langue du navigateur au premier chargement
+// si aucune préférence n'a jamais été sauvegardée.
+export function useSurveyTweaks(defaults) {
+  const [tweaks, setTweaks] = useTweaks(defaults);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('__tweaks_persistence');
+      const parsed = saved ? JSON.parse(saved) : null;
+      if (!parsed?.lang) {
+        setTweaks({ lang: detectBrowserLang() });
+      }
+    } catch (_) {}
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return [tweaks, setTweaks];
+}
 
 const labels = {
   fr: { lang: "Langue", disp: "Affichage", typo: "Typographie", font: "Police", layout: "Mise en page", density: "Densité", mode: "Mode", spacious: "Spacieux", compact: "Compact", light: "Clair", dark: "Sombre" },

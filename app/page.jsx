@@ -6,7 +6,7 @@ import { I18N } from '../components/i18n';
 import { SURVEY, getActiveParts } from '../components/survey-data';
 import { WheelLogo, HeroWheel, Arrow, Sprocket, StampMark } from '../components/icons';
 import { QuestionBlock, isAnswered } from '../components/questions';
-import { useTweaks, TWEAK_DEFAULTS, SurveyTweaks } from '../components/survey-tweaks';
+import { useSurveyTweaks, TWEAK_DEFAULTS, SurveyTweaks } from '../components/survey-tweaks';
 import ReferralEndCard from '../components/survey/ReferralEndCard';
 
 
@@ -291,7 +291,7 @@ const EndCard = ({ lang, answers }) => {
 /* ---------------- MAIN APP ---------------- */
 
 export default function App() {
-  const [tweaks, setTweaks] = useTweaks(TWEAK_DEFAULTS);
+  const [tweaks, setTweaks] = useSurveyTweaks(TWEAK_DEFAULTS);
   const { lang } = tweaks;
 
   const [filter, setFilter] = useState(null);
