@@ -88,38 +88,43 @@ export async function GET(req) {
   try {
   const where = buildWhere(req.nextUrl.searchParams);
 
-  const groupByPromises = SCALAR_FIELDS.map((field) =>
-    prisma.surveyResponse
-      .groupBy({ by: [field], where, _count: true })
-      .then((rows) => [field, rows])
-  );
-
-  const jsonRowsPromise = prisma.surveyResponse.findMany({
-    where,
-    select: {
-      filterValue: true,
-      age: true,
-      discovChannels: true,
-      comparison: true,
-      limitingFactors: true,
-      protections: true,
-      perception: true,
-      barriers: true,
-      hedonic: true,
-      instrumental: true,
-      socialMci: true,
-      symbolic: true,
-      cognitive: true,
-    },
-  });
-
-  const [N, groupResults, jsonRows] = await Promise.all([
+  // Single query fetching all fields — avoids 25 parallel groupBy that saturate
+  // the pgbouncer connection_limit=1 and trigger Netlify Function timeouts.
+  const [allRows, N] = await Promise.all([
+    prisma.surveyResponse.findMany({
+      where,
+      select: {
+        filterValue: true, socialExposure: true, adoptYear: true,
+        acquisitionMode: true, priceCat: true, adoptDelay: true,
+        discount: true, learningTime: true, tutorials: true,
+        learningDifficulty: true, weeklyDistance: true, mainUse: true,
+        transportReplace: true, carAccess: true, regulationStatus: true,
+        regulationInfluence: true, regulationRenounced: true,
+        socialCircle: true, groupRides: true, onlineCommunity: true,
+        futureLikelihood: true, gender: true, country: true,
+        citySize: true, occupation: true, income: true,
+        age: true,
+        discovChannels: true, comparison: true, limitingFactors: true,
+        protections: true, perception: true, barriers: true,
+        hedonic: true, instrumental: true, socialMci: true,
+        symbolic: true, cognitive: true,
+      },
+    }),
     prisma.surveyResponse.count({ where }),
-    Promise.all(groupByPromises),
-    jsonRowsPromise,
   ]);
 
-  const scalarMap = Object.fromEntries(groupResults);
+  const jsonRows = allRows;
+
+  // Build scalar frequency maps from rows (replaces 25 groupBy queries)
+  const scalarMap = {};
+  for (const field of SCALAR_FIELDS) {
+    const counts = {};
+    for (const row of allRows) {
+      const v = row[field];
+      if (v != null) counts[v] = (counts[v] || 0) + 1;
+    }
+    scalarMap[field] = Object.entries(counts).map(([key, _count]) => ({ [field]: key, _count }));
+  }
 
   const freq = (field) =>
     (scalarMap[field] || [])
