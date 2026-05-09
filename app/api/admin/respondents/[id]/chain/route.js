@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAncestors } from '@/lib/referral';
 import { prisma } from '@/lib/prisma';
+import { safeJson } from '@/lib/json';
 
 export const runtime = 'nodejs';
 
@@ -18,7 +19,7 @@ export async function GET(_req, { params }) {
 
   const chain = await getAncestors(id);
 
-  return NextResponse.json({
+  return safeJson({
     responder: {
       nodeId: response.nodeId,
       code: response.node.code,

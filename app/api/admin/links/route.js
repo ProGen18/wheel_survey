@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { safeJson } from '@/lib/json';
 
 export const runtime = 'nodejs';
 
@@ -41,7 +42,7 @@ export async function GET(req) {
     prisma.referralNode.count({ where }),
   ]);
 
-  return NextResponse.json({
+  return safeJson({
     items: items.map((n) => ({
       id: n.id,
       code: n.code,

@@ -1,10 +1,16 @@
 'use client';
 import React, { useState } from 'react';
 
-function TreeNode({ node, depth = 0 }) {
+const TXT = {
+  fr: { filleul: 'filleul', filleuls: 'filleuls', empty: 'Arbre vide', rootNotFound: 'Nœud racine introuvable' },
+  en: { filleul: 'referral', filleuls: 'referrals', empty: 'Empty tree', rootNotFound: 'Root node not found' },
+};
+
+function TreeNode({ node, depth = 0, lang = 'fr' }) {
   const [open, setOpen] = useState(depth < 2);
   const hasChildren = node.directFilleuls > 0 || (node.children && node.children.length > 0);
   const children = node.children || [];
+  const t = TXT[lang] || TXT.fr;
 
   return (
     <div style={{ marginLeft: depth > 0 ? '1.5rem' : 0 }}>
@@ -35,23 +41,25 @@ function TreeNode({ node, depth = 0 }) {
         <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.82rem' }}>{node.code}</span>
         {node.label && <span style={{ color: '#666', fontSize: '0.8rem' }}>({node.label})</span>}
         <span style={{ fontSize: '0.75rem', color: '#aaa', marginLeft: 'auto' }}>
-          {node.directFilleuls > 0 ? `${node.directFilleuls} filleul${node.directFilleuls > 1 ? 's' : ''}` : ''}
+          {node.directFilleuls > 0 ? `${node.directFilleuls} ${node.directFilleuls > 1 ? t.filleuls : t.filleul}` : ''}
         </span>
         <span style={{ fontSize: '0.7rem', color: '#ccc' }}>{node.lang?.toUpperCase()}</span>
       </div>
       {open && hasChildren && children.map((child) => (
-        <TreeNode key={child.id} node={child} depth={depth + 1} />
+        <TreeNode key={child.id} node={child} depth={depth + 1} lang={lang} />
       ))}
     </div>
   );
 }
 
-export default function TreeView({ tree = [] }) {
-  if (!tree || tree.length === 0) return <p style={{ color: '#999', fontStyle: 'italic' }}>Arbre vide</p>;
+export default function TreeView({ tree = [], lang = 'fr' }) {
+  const t = TXT[lang] || TXT.fr;
+
+  if (!tree || tree.length === 0) return <p style={{ color: '#999', fontStyle: 'italic' }}>{t.empty}</p>;
 
   // Build tree structure from flat list
   const root = tree.find((n) => n.depth === 0);
-  if (!root) return <p style={{ color: '#999' }}>Nœud racine introuvable</p>;
+  if (!root) return <p style={{ color: '#999' }}>{t.rootNotFound}</p>;
 
   const buildChildren = (parentId) => {
     return tree
@@ -63,7 +71,7 @@ export default function TreeView({ tree = [] }) {
 
   return (
     <div style={{ maxHeight: '500px', overflowY: 'auto', padding: '0.5rem 0' }}>
-      <TreeNode node={rootWithChildren} />
+      <TreeNode node={rootWithChildren} lang={lang} />
     </div>
   );
 }

@@ -2,15 +2,17 @@
 import React from 'react';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer, Legend } from 'recharts';
 
+const TXT = { fr: 'Aucune donnée', en: 'No data' };
+
 /**
  * data: [{ axis: 'Hédonique', value: 3.2 }, ...]
  * comparative: [{ name: 'Actifs', data: [{ axis: '...', value: ... }] }, { name: 'Non-users', data: [...] }]
  */
-export default function RadarBlock({ data, comparative, title, height = 350 }) {
+export default function RadarBlock({ data, comparative, title, height = 350, lang = 'fr' }) {
   const hasCompare = comparative && comparative.length > 0;
   const viewData = hasCompare ? comparativeToFlat(comparative) : data;
 
-  if (!viewData || viewData.length === 0) return <p style={{ color: '#999', fontStyle: 'italic' }}>Aucune donnée</p>;
+  if (!viewData || viewData.length === 0) return <p style={{ color: '#999', fontStyle: 'italic' }}>{TXT[lang] || TXT.fr}</p>;
 
   return (
     <section style={{ marginBottom: '2rem' }}>

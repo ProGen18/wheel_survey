@@ -33,6 +33,7 @@ model ReferralNode {
   @@index([code])
   @@index([nodeType])
   @@index([createdAt])
+  @@index([nodeType, parentId])
 }
 
 model SurveyResponse {
@@ -98,4 +99,5 @@ model SurveyResponse {
   @@index([startedAt])
   @@index([filterValue])
   @@index([country])
+  @@index([filterValue, completedAt])
 }

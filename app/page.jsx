@@ -6,7 +6,7 @@ import { I18N } from '../components/i18n';
 import { SURVEY, getActiveParts } from '../components/survey-data';
 import { WheelLogo, HeroWheel, Arrow, Sprocket, StampMark } from '../components/icons';
 import { QuestionBlock, isAnswered } from '../components/questions';
-import { useTweaks, TweaksPanel, TweakSection, TweakRadio } from '../components/tweaks-panel';
+import { useTweaks, TWEAK_DEFAULTS, SurveyTweaks } from '../components/survey-tweaks';
 import ReferralEndCard from '../components/survey/ReferralEndCard';
 
 
@@ -258,7 +258,7 @@ const PartSection = ({ part, lang, answers, onAnswer, partMeta, onAdvance, onGoB
 
 /* ---------------- END CARD ---------------- */
 
-const EndCard = ({ lang, onReset, answers }) => {
+const EndCard = ({ lang, answers }) => {
   const I = I18N[lang];
   const answered = Object.keys(answers).length;
   return (
@@ -281,104 +281,18 @@ const EndCard = ({ lang, onReset, answers }) => {
           <div className="sig">
             <span>{I.end.sig}</span>
           </div>
-          <button className="btn btn-ghost" onClick={onReset} style={{ marginTop: "1.5rem" }}>
-            {I.end.again}
-          </button>
+          <p className="meta" style={{ textAlign: "center", marginTop: "1.5rem", maxWidth: "50ch" }}>{I.end.permanent}</p>
         </div>
       </Reveal>
     </section>);
 
 };
 
-/* ---------------- TWEAKS ---------------- */
-
-const TWEAK_DEFAULTS = {
-  "lang": "fr",
-  "font": "serif",
-  "density": "default",
-  "theme": "light"
-}
-
-const SurveyTweaks = ({ tweaks, setTweaks, pct = 0 }) => {
-  const labels = {
-    fr: { 
-      lang: "Langue", disp: "Affichage", typo: "Typographie", font: "Police", 
-      layout: "Mise en page", density: "Densité", mode: "Mode",
-      spacious: "Spacieux", compact: "Compact", light: "Clair", dark: "Sombre" 
-    },
-    en: { 
-      lang: "Language", disp: "Display", typo: "Typography", font: "Font", 
-      layout: "Layout", density: "Density", mode: "Mode",
-      spacious: "Spacious", compact: "Compact", light: "Light", dark: "Dark" 
-    },
-    ru: { 
-      lang: "Язык", disp: "Отображение", typo: "Типографика", font: "Шрифт", 
-      layout: "Макет", density: "Плотность", mode: "Режим",
-      spacious: "Просторный", compact: "Компактный", light: "Светлый", dark: "Темный" 
-    },
-    zh: { 
-      lang: "语言", disp: "显示", typo: "排版", font: "字体", 
-      layout: "布局", density: "密度", mode: "模式",
-      spacious: "宽敞", compact: "紧凑", light: "浅色", dark: "深色" 
-    }
-  };
-  const L = labels[tweaks.lang] || labels.en;
-
-  return (
-    <TweaksPanel title="Tweaks" pct={pct}>
-      <TweakSection title={L.lang}>
-        <TweakRadio
-          label={L.disp}
-          value={tweaks.lang}
-          onChange={(v) => setTweaks({ lang: v })}
-          options={[
-            { value: "fr", label: "Français" },
-            { value: "en", label: "English" },
-            { value: "ru", label: "Русский" },
-            { value: "zh", label: "中文" }
-          ]} />
-      </TweakSection>
-
-      <TweakSection title={L.typo}>
-        <TweakRadio
-          label={L.font}
-          value={tweaks.font}
-          onChange={(v) => setTweaks({ font: v })}
-          options={[
-            { value: "serif", label: "Serif" },
-            { value: "sans", label: "Sans" },
-            { value: "mono", label: "Mono" }
-          ]} />
-      </TweakSection>
-
-      <TweakSection title={L.layout}>
-        <TweakRadio
-          label={L.density}
-          value={tweaks.density}
-          onChange={(v) => setTweaks({ density: v })}
-          options={[
-            { value: "default", label: L.spacious },
-            { value: "compact", label: L.compact }
-          ]} />
-
-        <TweakRadio
-          label={L.mode}
-          value={tweaks.theme}
-          onChange={(v) => setTweaks({ theme: v })}
-          options={[
-            { value: "light", label: L.light },
-            { value: "dark", label: L.dark }
-          ]} />
-      </TweakSection>
-    </TweaksPanel>
-  );
-};
-
 /* ---------------- MAIN APP ---------------- */
 
 export default function App() {
   const [tweaks, setTweaks] = useTweaks(TWEAK_DEFAULTS);
-  const { lang, font, density, theme } = tweaks;
+  const { lang } = tweaks;
 
   const [filter, setFilter] = useState(null);
   const [answers, setAnswers] = useState({});
@@ -408,13 +322,6 @@ export default function App() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  // Apply theme/font/density
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    document.documentElement.dataset.font = font;
-    document.documentElement.dataset.density = density;
-  }, [theme, font, density]);
 
   // ---- Referral / auto-save lifecycle ----
 
@@ -594,19 +501,6 @@ export default function App() {
     }
   }, [activeParts]);
 
-  const handleReset = () => {
-    setFilter(null);
-    setAnswers({});
-    setUnlockedPartIdx(-1);
-    setSubmitted(false);
-    setSessionToken(null);
-    setReferralCode(null);
-    setReferralLink(null);
-    startedRef.current = false;
-    try { sessionStorage.removeItem('gyro_token'); sessionStorage.removeItem('gyro_parentCode'); } catch (_) {}
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   const handleGoBack = (currentIdx) => {
     // currentIdx: -1 = filter section, 0..n = part index
     if (currentIdx === -1) {
@@ -674,10 +568,9 @@ export default function App() {
               lang={lang}
               referralCode={referralCode}
               referralLink={referralLink}
-              onReset={handleReset}
             />
           ) : (
-            <EndCard lang={lang} onReset={handleReset} answers={answers} />
+            <EndCard lang={lang} answers={answers} />
           )}
         </div>
       }

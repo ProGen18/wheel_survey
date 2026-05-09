@@ -2,26 +2,52 @@
 import React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-const FILTER_PROFILES = [
-  { value: '', label: 'Tous les profils' },
-  { value: 'reg', label: 'Réguliers' },
-  { value: 'occ', label: 'Occasionnels' },
-  { value: 'ex', label: 'Anciens' },
-  { value: 'curious', label: 'Curieux' },
-  { value: 'never', label: 'Jamais' },
-  { value: 'skip', label: 'Sans réponse' },
-];
+const TXT = {
+  fr: {
+    allProfiles: 'Tous les profils',
+    allPeriods: 'Toute période',
+    days90: '90 derniers jours',
+    days30: '30 derniers jours',
+    days7: '7 derniers jours',
+    allLangs: 'Toutes les langues',
+    french: 'Français',
+    english: 'English',
+    russian: 'Русский',
+    chinese: '中文',
+    reg: 'Réguliers',
+    occ: 'Occasionnels',
+    ex: 'Anciens',
+    curious: 'Curieux',
+    never: 'Jamais',
+    skip: 'Sans réponse',
+  },
+  en: {
+    allProfiles: 'All profiles',
+    allPeriods: 'All periods',
+    days90: 'Last 90 days',
+    days30: 'Last 30 days',
+    days7: 'Last 7 days',
+    allLangs: 'All languages',
+    french: 'Français',
+    english: 'English',
+    russian: 'Русский',
+    chinese: '中文',
+    reg: 'Regular',
+    occ: 'Occasional',
+    ex: 'Former',
+    curious: 'Curious',
+    never: 'Never',
+    skip: 'No answer',
+  },
+};
 
-const PERIODS = [
-  { value: '', label: 'Toute période' },
-  { value: '90', label: '90 derniers jours' },
-  { value: '30', label: '30 derniers jours' },
-  { value: '7', label: '7 derniers jours' },
-];
+const FILTER_PROFILES = ['', 'reg', 'occ', 'ex', 'curious', 'never', 'skip'];
+const PERIODS = ['', '90', '30', '7'];
 
-export default function FiltersBar({ onFilter, showProfile = true, showPeriod = true, showLang = true }) {
+export default function FiltersBar({ onFilter, showProfile = true, showPeriod = true, showLang = true, lang = 'fr' }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = TXT[lang] || TXT.fr;
 
   const currentProfile = searchParams.get('profile') || '';
   const currentPeriod = searchParams.get('period') || '';
@@ -53,7 +79,8 @@ export default function FiltersBar({ onFilter, showProfile = true, showPeriod = 
           onChange={(e) => update('profile', e.target.value)}
           style={selectStyle}
         >
-          {FILTER_PROFILES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+          <option value="">{t.allProfiles}</option>
+          {FILTER_PROFILES.filter(Boolean).map((v) => <option key={v} value={v}>{t[v] || v}</option>)}
         </select>
       )}
       {showPeriod && (
@@ -62,7 +89,11 @@ export default function FiltersBar({ onFilter, showProfile = true, showPeriod = 
           onChange={(e) => update('period', e.target.value)}
           style={selectStyle}
         >
-          {PERIODS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
+          <option value="">{t.allPeriods}</option>
+          {PERIODS.filter(Boolean).map((v) => {
+            const labels = { '90': t.days90, '30': t.days30, '7': t.days7 };
+            return <option key={v} value={v}>{labels[v] || v}</option>;
+          })}
         </select>
       )}
       {showLang && (
@@ -71,11 +102,11 @@ export default function FiltersBar({ onFilter, showProfile = true, showPeriod = 
           onChange={(e) => update('lang', e.target.value)}
           style={selectStyle}
         >
-          <option value="">Toutes les langues</option>
-          <option value="fr">Français</option>
-          <option value="en">English</option>
-          <option value="ru">Русский</option>
-          <option value="zh">中文</option>
+          <option value="">{t.allLangs}</option>
+          <option value="fr">{t.french}</option>
+          <option value="en">{t.english}</option>
+          <option value="ru">{t.russian}</option>
+          <option value="zh">{t.chinese}</option>
         </select>
       )}
     </div>

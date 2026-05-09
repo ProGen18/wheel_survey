@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useCallback } from 'react';
 
-export default function ReferralEndCard({ lang, referralCode, referralLink, onReset }) {
+export default function ReferralEndCard({ lang, referralCode, referralLink }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(async () => {
@@ -50,10 +50,6 @@ export default function ReferralEndCard({ lang, referralCode, referralLink, onRe
       </div>
 
       <p className="ref-note">{t.note}</p>
-
-      <button className="btn btn-ghost" onClick={onReset} style={{ marginTop: '1.5rem' }}>
-        {t.again}
-      </button>
     </div>
   );
 }
@@ -68,7 +64,6 @@ const TRANSLATIONS = {
     confirm: 'Lien copié !',
     code: 'Votre code :',
     note: 'Chaque personne qui répondra via votre lien sera reliée à vous dans l\'arbre de l\'étude. Une fois le questionnaire terminé via votre lien, son code personnel lui sera remis.',
-    again: 'Recommencer le questionnaire',
   },
   en: {
     title: 'Thank you for participating!',
@@ -79,6 +74,5 @@ const TRANSLATIONS = {
     confirm: 'Link copied!',
     code: 'Your code:',
     note: 'Everyone who answers via your link will be connected to you in the study tree. Once the questionnaire is completed via your link, their personal code will be given to them.',
-    again: 'Restart the survey',
   },
 };

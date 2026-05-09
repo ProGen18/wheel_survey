@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
+import { guardApi } from '@/lib/api-guard';
 import { prisma } from '@/lib/prisma';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function POST(req) {
+  const guard = guardApi(req, { type: 'visit_post' });
+  if (guard) return guard;
+
   try {
     const { code } = await req.json();
     if (typeof code === 'string' && code.trim().length > 0) {

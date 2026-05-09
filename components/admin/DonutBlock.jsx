@@ -4,8 +4,10 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recha
 
 const COLORS = ['#d94d1a', '#e87235', '#f0985a', '#1e4a47', '#8b5cf6', '#3b82f6', '#f59e0b'];
 
-export default function DonutBlock({ data, dataKey = 'value', nameKey = 'name', title, innerRadius = 55 }) {
-  if (!data || data.length === 0) return <p style={{ color: '#999', fontStyle: 'italic' }}>Aucune donnée</p>;
+const TXT = { fr: 'Aucune donnée', en: 'No data' };
+
+export default function DonutBlock({ data, dataKey = 'value', nameKey = 'name', title, innerRadius = 55, lang = 'fr' }) {
+  if (!data || data.length === 0) return <p style={{ color: '#999', fontStyle: 'italic' }}>{TXT[lang] || TXT.fr}</p>;
 
   return (
     <section style={{ marginBottom: '2rem' }}>

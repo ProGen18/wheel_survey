@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { safeJson } from '@/lib/json';
 import { getDescendants } from '@/lib/referral';
 
 export const runtime = 'nodejs';
@@ -41,7 +42,7 @@ export async function GET(_req, { params }) {
     WHERE "nodeId" IN (SELECT id FROM d) AND "completedAt" IS NOT NULL
   `;
 
-  return NextResponse.json({
+  return safeJson({
     ...node,
     directFilleuls: node._count.children,
     totalFilleuls: totalRes?.[0]?.total || 0,

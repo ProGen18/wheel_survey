@@ -1,10 +1,38 @@
 import { NextResponse } from 'next/server';
-import { comparePassword, signCookie, checkRateLimit } from '@/lib/auth-node';
+import crypto from 'node:crypto';
+import { signCookie, checkRateLimit, comparePassword } from '@/lib/auth-node';
 import { extractClientIp } from '@/lib/ip';
 
 export const runtime = 'nodejs';
 
+function generateCsrfToken() {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+// GET: sets a CSRF token cookie for double-submit protection.
+// The client reads this cookie and sends its value in X-CSRF-Token header on POST.
+export async function GET() {
+  const token = generateCsrfToken();
+  const res = NextResponse.json({ ok: true });
+  res.cookies.set('csrf_token', token, {
+    httpOnly: false, // JS must be able to read it
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    path: '/',
+    maxAge: 3600,
+  });
+  return res;
+}
+
 export async function POST(req) {
+  // CSRF double-submit check
+  const csrfCookie = req.cookies.get('csrf_token')?.value;
+  const csrfHeader = req.headers.get('x-csrf-token');
+  if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
+    return NextResponse.json({ error: 'csrf_invalid' }, { status: 403 });
+  }
+
+  // Rate limit
   const ip = extractClientIp(req.headers);
   const rl = checkRateLimit(ip);
   if (!rl.allowed) {
@@ -22,13 +50,14 @@ export async function POST(req) {
   }
 
   const { password } = body;
-  const hash = process.env.ADMIN_PASSWORD_HASH;
+  const expected = process.env.ADMIN_PASSWORD;
 
-  if (!hash) {
+  if (!expected) {
     return NextResponse.json({ error: 'not_configured' }, { status: 500 });
   }
 
-  const valid = await comparePassword(password, hash);
+  // bcrypt comparison against stored hash (no plaintext comparison)
+  const valid = await comparePassword(password, expected);
   if (!valid) {
     const remaining = Math.max(0, rl.remaining);
     return NextResponse.json(

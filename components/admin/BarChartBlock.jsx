@@ -4,8 +4,10 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 const COLORS = ['#d94d1a', '#e87235', '#f0985a', '#f4b880', '#f8d4a8', '#e8d5c4'];
 
-export default function BarChartBlock({ data, dataKey, xKey, title, bars = [{ dataKey, fill: 'var(--ember, #d94d1a)' }], stacked = false, height = 300 }) {
-  if (!data || data.length === 0) return <Empty title={title} />;
+const TXT = { fr: 'Aucune donnée', en: 'No data' };
+
+export default function BarChartBlock({ data, dataKey, xKey, title, bars = [{ dataKey, fill: 'var(--ember, #d94d1a)' }], stacked = false, height = 300, lang = 'fr' }) {
+  if (!data || data.length === 0) return <Empty title={title} lang={lang} />;
 
   return (
     <section style={{ marginBottom: '2rem' }}>
@@ -31,11 +33,11 @@ export default function BarChartBlock({ data, dataKey, xKey, title, bars = [{ da
   );
 }
 
-function Empty({ title }) {
+function Empty({ title, lang }) {
   return (
     <section style={{ marginBottom: '2rem' }}>
       {title && <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>{title}</h3>}
-      <p style={{ color: '#999', fontStyle: 'italic' }}>Aucune donnée</p>
+      <p style={{ color: '#999', fontStyle: 'italic' }}>{TXT[lang] || TXT.fr}</p>
     </section>
   );
 }

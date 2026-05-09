@@ -1,14 +1,71 @@
 'use client';
-import React, { useState } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useAdminLang } from '../layout';
 
-export default function AdminLoginPage() {
+const T = {
+  fr: {
+    title: 'Gyroroue Admin',
+    subtitle: 'Accès sécurisé au dashboard',
+    password: 'Mot de passe',
+    invalid: 'Identifiants incorrects',
+    serverError: 'Erreur serveur',
+    networkError: 'Erreur réseau',
+    sessionExpired: 'Session expirée, veuillez réessayer',
+    locked: 'Compte bloqué 1 heure',
+    attempts: 'tentative',
+    attemptsPl: 'tentatives',
+    remaining: 'restante',
+    remainingPl: 'restantes',
+    signIn: 'Se connecter',
+    signingIn: 'Connexion...',
+    loading: 'Chargement...',
+  },
+  en: {
+    title: 'Gyroroue Admin',
+    subtitle: 'Secure dashboard access',
+    password: 'Password',
+    invalid: 'Incorrect credentials',
+    serverError: 'Server error',
+    networkError: 'Network error',
+    sessionExpired: 'Session expired, please try again',
+    locked: 'Account locked for 1 hour',
+    attempts: 'attempt',
+    attemptsPl: 'attempts',
+    remaining: 'remaining',
+    remainingPl: 'remaining',
+    signIn: 'Sign in',
+    signingIn: 'Signing in...',
+    loading: 'Loading...',
+  },
+};
+
+function getCsrfToken() {
+  const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]*)/);
+  return match ? match[1] : '';
+}
+
+function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [remaining, setRemaining] = useState(null);
+  const [csrfToken, setCsrfToken] = useState('');
+  const lang = useAdminLang();
+  const t = T[lang];
+
+  // Fetch CSRF token on mount
+  useEffect(() => {
+    fetch('/api/admin/auth/login')
+      .then(() => {
+        setCsrfToken(getCsrfToken());
+      })
+      .catch(() => {
+        // Non-blocking: if GET fails, csrfToken stays empty and POST will fail with csrf_invalid
+      });
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,7 +75,10 @@ export default function AdminLoginPage() {
     try {
       const res = await fetch('/api/admin/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken || getCsrfToken(),
+        },
         body: JSON.stringify({ password }),
       });
       const data = await res.json();
@@ -26,11 +86,18 @@ export default function AdminLoginPage() {
         const redirect = params.get('redirect') || '/admin';
         router.push(redirect);
       } else {
-        setError(data.error === 'invalid_password' ? 'Identifiants incorrects' : 'Erreur serveur');
+        if (data.error === 'csrf_invalid') {
+          // Refresh token and let user retry
+          setError(t.sessionExpired);
+          setCsrfToken('');
+          fetch('/api/admin/auth/login').then(() => setCsrfToken(getCsrfToken()));
+        } else {
+          setError(data.error === 'invalid_password' ? t.invalid : t.serverError);
+        }
         if (data.remaining !== undefined) setRemaining(data.remaining);
       }
     } catch {
-      setError('Erreur réseau');
+      setError(t.networkError);
     } finally {
       setLoading(false);
     }
@@ -54,17 +121,17 @@ export default function AdminLoginPage() {
         maxWidth: '360px',
       }}>
         <h1 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--ink)' }}>
-          Gyroroue Admin
+          {t.title}
         </h1>
         <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1.5rem' }}>
-          Accès sécurisé au dashboard
+          {t.subtitle}
         </p>
 
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Mot de passe"
+          placeholder={t.password}
           autoFocus
           style={{
             width: '100%',
@@ -80,8 +147,8 @@ export default function AdminLoginPage() {
         {error && (
           <p style={{ color: 'var(--ember)', fontSize: '0.85rem', marginBottom: '0.75rem' }}>
             {error}
-            {remaining != null && remaining > 0 && ` (${remaining} tentative${remaining > 1 ? 's' : ''} restante${remaining > 1 ? 's' : ''})`}
-            {remaining === 0 && ' — Compte bloqué 1 heure'}
+            {remaining != null && remaining > 0 && ` (${remaining} ${remaining > 1 ? t.attemptsPl : t.attempts} ${remaining > 1 ? t.remainingPl : t.remaining})`}
+            {remaining === 0 && ` — ${t.locked}`}
           </p>
         )}
 
@@ -102,9 +169,19 @@ export default function AdminLoginPage() {
             fontFamily: 'inherit',
           }}
         >
-          {loading ? 'Connexion...' : 'Se connecter'}
+          {loading ? t.signingIn : t.signIn}
         </button>
       </form>
     </div>
+  );
+}
+
+export default function AdminLoginPage() {
+  const lang = useAdminLang();
+  const t = T[lang];
+  return (
+    <Suspense fallback={<p style={{textAlign:'center',padding:'3rem',color:'#666'}}>{t.loading}</p>}>
+      <LoginForm />
+    </Suspense>
   );
 }

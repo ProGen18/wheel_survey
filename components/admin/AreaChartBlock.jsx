@@ -2,8 +2,10 @@
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-export default function AreaChartBlock({ data, xKey = 'day', areas = [{ dataKey: 'count', fill: 'var(--ember, #d94d1a)', stroke: '#d94d1a' }], title, height = 280 }) {
-  if (!data || data.length === 0) return <p style={{ color: '#999', fontStyle: 'italic' }}>Aucune donnée</p>;
+const TXT = { fr: 'Aucune donnée', en: 'No data' };
+
+export default function AreaChartBlock({ data, xKey = 'day', areas = [{ dataKey: 'count', fill: 'var(--ember, #d94d1a)', stroke: '#d94d1a' }], title, height = 280, lang = 'fr' }) {
+  if (!data || data.length === 0) return <p style={{ color: '#999', fontStyle: 'italic' }}>{TXT[lang] || TXT.fr}</p>;
 
   return (
     <section style={{ marginBottom: '2rem' }}>

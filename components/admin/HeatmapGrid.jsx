@@ -1,14 +1,16 @@
 'use client';
 import React from 'react';
 
+const TXT = { fr: 'Aucune donnée', en: 'No data' };
+
 /**
  * Pure CSS Grid heatmap.
  * rows: [{ key, label }]
  * cols: [{ key, label }]
  * data: { rowKey: { colKey: count } } — cell values N
  */
-export default function HeatmapGrid({ rows = [], cols = [], data = {}, title }) {
-  if (rows.length === 0 || cols.length === 0) return <p style={{ color: '#999', fontStyle: 'italic' }}>Aucune donnée</p>;
+export default function HeatmapGrid({ rows = [], cols = [], data = {}, title, lang = 'fr' }) {
+  if (rows.length === 0 || cols.length === 0) return <p style={{ color: '#999', fontStyle: 'italic' }}>{TXT[lang] || TXT.fr}</p>;
 
   // Find max value for intensity scaling
   let maxVal = 0;

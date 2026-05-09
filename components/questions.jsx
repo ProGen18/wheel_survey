@@ -7,6 +7,28 @@ const field = (q, name, lang) => {
   return q[key] != null ? q[key] : q[`${name}_en`];
 };
 
+const COUNTRIES = [
+  "Afghanistan","Afrique du Sud","Albanie","Algérie","Allemagne","Andorre","Angola","Arabie Saoudite",
+  "Argentine","Arménie","Australie","Autriche","Azerbaïdjan","Bahreïn","Bangladesh","Belgique",
+  "Bénin","Biélorussie","Birmanie","Bolivie","Bosnie-Herzégovine","Botswana","Brésil","Brunei",
+  "Bulgarie","Burkina Faso","Burundi","Cambodge","Cameroun","Canada","Chili","Chine","Chypre",
+  "Colombie","Comores","Congo","Corée du Nord","Corée du Sud","Costa Rica","Côte d'Ivoire",
+  "Croatie","Cuba","Danemark","Djibouti","Égypte","Émirats arabes unis","Équateur","Érythrée",
+  "Espagne","Estonie","États-Unis","Éthiopie","Fidji","Finlande","France","Gabon","Gambie",
+  "Géorgie","Ghana","Grèce","Guatemala","Guinée","Haïti","Honduras","Hongrie","Île Maurice",
+  "Inde","Indonésie","Irak","Iran","Irlande","Islande","Israël","Italie","Jamaïque","Japon",
+  "Jordanie","Kazakhstan","Kenya","Kirghizistan","Kosovo","Koweït","Laos","Lettonie","Liban",
+  "Libye","Lituanie","Luxembourg","Macédoine du Nord","Madagascar","Malaisie","Mali","Malte",
+  "Maroc","Mexique","Moldavie","Monaco","Mongolie","Monténégro","Mozambique","Namibie","Népal",
+  "Nicaragua","Niger","Nigeria","Norvège","Nouvelle-Zélande","Oman","Ouganda","Ouzbékistan",
+  "Pakistan","Panama","Paraguay","Pays-Bas","Pérou","Philippines","Pologne","Portugal","Qatar",
+  "République dominicaine","République tchèque","Roumanie","Royaume-Uni","Russie","Rwanda",
+  "Sénégal","Serbie","Singapour","Slovaquie","Slovénie","Somalie","Soudan","Sri Lanka","Suède",
+  "Suisse","Suriname","Syrie","Tadjikistan","Taïwan","Tanzanie","Tchad","Thaïlande","Togo",
+  "Tunisie","Turkménistan","Turquie","Ukraine","Uruguay","Venezuela","Vietnam","Yémen","Zambie",
+  "Zimbabwe"
+];
+
 const Choice = ({ label, selected, onClick, idx, multi = false }) => (
   <button
     type="button"
@@ -95,19 +117,13 @@ export const LikertDial = ({ value, onChange, endsType = "12", lang }) => {
     <div className="likert-scale">
       <div className="likert-track" role="radiogroup">
         <div className="likert-line" />
-        {value && (
-          <div 
-            className="likert-fill" 
-            style={{ width: `calc(${((value - 1) / 6) * 100}% - ${((value - 1) / 6) * 40}px)` }} 
-          />
-        )}
         {ticks.map(t => (
           <button
             key={t}
             type="button"
             role="radio"
             aria-checked={value === t}
-            className={`likert-dot ${value === t ? "is-selected" : ""} ${value && t < value ? "is-past" : ""}`}
+            className={`likert-dot ${value === t ? "is-selected" : ""}`}
             onClick={() => onChange(t)}
           >
             <span className="likert-dot-circle" />
@@ -158,20 +174,11 @@ const LikertMatrixQuestion = ({ q, lang, value = {}, onChange }) => {
           <span className="likert-matrix-stmt">{stmt}</span>
           <div className="likert-matrix-dots">
             <div className="likert-line" style={{ left: "18px", right: "18px" }} />
-            {value[i] && (
-              <div 
-                className="likert-fill" 
-                style={{ 
-                  left: "18px", 
-                  width: `calc(${((value[i] - 1) / 6) * 100}% - ${((value[i] - 1) / 6) * 36}px)` 
-                }} 
-              />
-            )}
             {[1, 2, 3, 4, 5, 6, 7].map(t => (
               <button
                 key={t}
                 type="button"
-                className={`likert-matrix-dot ${value[i] === t ? "is-selected" : ""} ${value[i] && t < value[i] ? "is-past" : ""}`}
+                className={`likert-matrix-dot ${value[i] === t ? "is-selected" : ""}`}
                 onClick={() => onChange({ ...value, [i]: t })}
               >
                 <span className="likert-matrix-dot-inner" />
@@ -210,16 +217,28 @@ const YearQuestion = ({ q, lang, value, onChange }) => (
   </div>
 );
 
-const TextQuestion = ({ q, lang, value, onChange }) => (
-  <div className="text-field">
-    <input
-      type="text"
-      value={value ?? ""}
-      onChange={e => onChange(e.target.value)}
-      placeholder={field(q, 'placeholder', lang)}
-    />
-  </div>
-);
+const TextQuestion = ({ q, lang, value, onChange }) => {
+  const listId = q.key === 'country' ? 'country-list' : null;
+  return (
+    <div className="text-field">
+      <input
+        type="text"
+        value={value ?? ""}
+        onChange={e => onChange(e.target.value)}
+        placeholder={field(q, 'placeholder', lang)}
+        list={listId}
+        autoComplete="off"
+      />
+      {listId && (
+        <datalist id={listId}>
+          {COUNTRIES.map((c) => (
+            <option key={c} value={c} />
+          ))}
+        </datalist>
+      )}
+    </div>
+  );
+};
 
 export const QuestionRenderer = ({ q, lang, value, onChange }) => {
   switch (q.kind) {

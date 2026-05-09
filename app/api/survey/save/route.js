@@ -1,60 +1,76 @@
 import { NextResponse } from 'next/server';
+import { guardApi } from '@/lib/api-guard';
 import { prisma } from '@/lib/prisma';
 
 export const runtime = 'nodejs';
 
+// Fields that expect String in the DB but the frontend sends as numeric index (single questions)
+const STR_FIELDS = [
+  'socialExposure', 'acquisitionMode', 'priceCat', 'adoptDelay', 'discount',
+  'learningTime', 'tutorials', 'weeklyDistance', 'mainUse', 'transportReplace',
+  'carAccess', 'regulationStatus', 'regulationInfluence', 'regulationRenounced',
+  'socialCircle', 'groupRides', 'onlineCommunity', 'futureLikelihood',
+  'gender', 'citySize', 'occupation', 'income',
+];
+
+function coerce(v, field) {
+  if (v === undefined) return undefined;
+  if (STR_FIELDS.includes(field) && typeof v === 'number') return String(v);
+  return v;
+}
+
 function mapAnswersToDb(answers) {
-  return {
-    filterValue: answers.filterValue ?? undefined,
-
-    discovChannels: answers.discovChannels ?? undefined,
-    socialExposure: answers.socialExposure ?? undefined,
-
-    adoptYear: answers.adoptYear ?? undefined,
-    acquisitionMode: answers.acquisitionMode ?? undefined,
-    priceCat: answers.priceCat ?? undefined,
-    adoptDelay: answers.adoptDelay ?? undefined,
-    discount: answers.discount ?? undefined,
-    learningTime: answers.learningTime ?? undefined,
-    tutorials: answers.tutorials ?? undefined,
-    learningDifficulty: answers.learningDifficulty ?? undefined,
-
-    weeklyDistance: answers.weeklyDistance ?? undefined,
-    mainUse: answers.mainUse ?? undefined,
-    transportReplace: answers.transportReplace ?? undefined,
-    carAccess: answers.carAccess ?? undefined,
-    comparison: answers.comparison ?? undefined,
-
-    limitingFactors: answers.limitingFactors ?? undefined,
-    protections: answers.protections ?? undefined,
-    regulationStatus: answers.regulationStatus ?? undefined,
-    regulationInfluence: answers.regulationInfluence ?? undefined,
-    regulationRenounced: answers.regulationRenounced ?? undefined,
-
-    socialCircle: answers.socialCircle ?? undefined,
-    groupRides: answers.groupRides ?? undefined,
-    onlineCommunity: answers.onlineCommunity ?? undefined,
-
-    perception: answers.perception ?? undefined,
-    futureLikelihood: answers.futureLikelihood ?? undefined,
-    barriers: answers.barriers ?? undefined,
-
-    hedonic: answers.hedonic ?? undefined,
-    instrumental: answers.instrumental ?? undefined,
-    socialMci: answers.socialMci ?? answers.social ?? undefined,
-    symbolic: answers.symbolic ?? undefined,
-    cognitive: answers.cognitive ?? undefined,
-
-    age: answers.age ?? undefined,
-    gender: answers.gender ?? undefined,
-    country: answers.country ?? undefined,
-    citySize: answers.citySize ?? undefined,
-    occupation: answers.occupation ?? undefined,
-    income: answers.income ?? undefined,
+  const raw = {
+    filterValue: answers.filterValue,
+    discovChannels: answers.discovChannels,
+    socialExposure: answers.socialExposure,
+    adoptYear: answers.adoptYear,
+    acquisitionMode: answers.acquisitionMode,
+    priceCat: answers.priceCat,
+    adoptDelay: answers.adoptDelay,
+    discount: answers.discount,
+    learningTime: answers.learningTime,
+    tutorials: answers.tutorials,
+    learningDifficulty: answers.learningDifficulty,
+    weeklyDistance: answers.weeklyDistance,
+    mainUse: answers.mainUse,
+    transportReplace: answers.transportReplace,
+    carAccess: answers.carAccess,
+    comparison: answers.comparison,
+    limitingFactors: answers.limitingFactors,
+    protections: answers.protections,
+    regulationStatus: answers.regulationStatus,
+    regulationInfluence: answers.regulationInfluence,
+    regulationRenounced: answers.regulationRenounced,
+    socialCircle: answers.socialCircle,
+    groupRides: answers.groupRides,
+    onlineCommunity: answers.onlineCommunity,
+    perception: answers.perception,
+    futureLikelihood: answers.futureLikelihood,
+    barriers: answers.barriers,
+    hedonic: answers.hedonic,
+    instrumental: answers.instrumental,
+    socialMci: answers.socialMci ?? answers.social,
+    symbolic: answers.symbolic,
+    cognitive: answers.cognitive,
+    age: answers.age,
+    gender: answers.gender,
+    country: answers.country,
+    citySize: answers.citySize,
+    occupation: answers.occupation,
+    income: answers.income,
   };
+  const out = {};
+  for (const [k, v] of Object.entries(raw)) {
+    if (v !== undefined) out[k] = coerce(v, k);
+  }
+  return out;
 }
 
 export async function POST(req) {
+  const guard = guardApi(req, { type: 'survey_post' });
+  if (guard) return guard;
+
   let body = {};
   try {
     body = await req.json();

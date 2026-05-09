@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { guardApi } from '@/lib/api-guard';
 import { prisma } from '@/lib/prisma';
 import { generateUniqueRespondentCode, generateSessionToken, computeExpiresAt, buildReferralLink, validateCode } from '@/lib/referral';
 import { extractClientIp, hashIp } from '@/lib/ip';
@@ -6,6 +7,9 @@ import { extractClientIp, hashIp } from '@/lib/ip';
 export const runtime = 'nodejs';
 
 export async function POST(req) {
+  const guard = guardApi(req, { type: 'survey_post' });
+  if (guard) return guard;
+
   let body = {};
   try {
     body = await req.json();

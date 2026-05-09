@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { safeJson } from '@/lib/json';
 
 export const runtime = 'nodejs';
 
@@ -52,7 +53,7 @@ export async function GET(req) {
     prisma.surveyResponse.count({ where }),
   ]);
 
-  return NextResponse.json({
+  return safeJson({
     items: items.map((r) => ({
       id: r.id,
       nodeId: r.nodeId,

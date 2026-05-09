@@ -1,7 +1,69 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+import { useAdminLang } from '../layout';
 
-const STATUS = { active: 'Actif', expired: 'Expiré', revoked: 'Révoqué' };
+const T = {
+  fr: {
+    title: 'Gestion des liens',
+    allTypes: 'Tous les types',
+    influencers: 'Influenceurs',
+    respondents: 'Répondants',
+    allStatuses: 'Tous les statuts',
+    active: 'Actifs',
+    expired: 'Expirés',
+    revoked: 'Révoqués',
+    allLangs: 'Toutes les langues',
+    thCode: 'Code',
+    thType: 'Type',
+    thReferrer: 'Parrain',
+    thDirectRefs: 'Filleuls directs',
+    thVisits: 'Visites',
+    thStatus: 'Statut',
+    thCreated: 'Créé le',
+    thExpires: 'Expire le',
+    thActions: 'Actions',
+    activeBadge: 'Actif',
+    inactiveBadge: 'Inactif',
+    revoke: 'Révoquer',
+    regenerate: 'Régénérer',
+    confirmRevoke: 'Confirmer : révoquer ce lien ?',
+    confirmRegen: 'Confirmer : régénérer ce lien ?',
+    noLinks: 'Aucun lien trouvé',
+    loading: 'Chargement...',
+    typeInfluencer: 'Influenceur',
+    typeRespondent: 'Répondant',
+  },
+  en: {
+    title: 'Link management',
+    allTypes: 'All types',
+    influencers: 'Influencers',
+    respondents: 'Respondents',
+    allStatuses: 'All statuses',
+    active: 'Active',
+    expired: 'Expired',
+    revoked: 'Revoked',
+    allLangs: 'All languages',
+    thCode: 'Code',
+    thType: 'Type',
+    thReferrer: 'Referrer',
+    thDirectRefs: 'Direct referrals',
+    thVisits: 'Visits',
+    thStatus: 'Status',
+    thCreated: 'Created',
+    thExpires: 'Expires',
+    thActions: 'Actions',
+    activeBadge: 'Active',
+    inactiveBadge: 'Inactive',
+    revoke: 'Revoke',
+    regenerate: 'Regenerate',
+    confirmRevoke: 'Confirm: revoke this link?',
+    confirmRegen: 'Confirm: regenerate this link?',
+    noLinks: 'No links found',
+    loading: 'Loading...',
+    typeInfluencer: 'Influencer',
+    typeRespondent: 'Respondent',
+  },
+};
 
 export default function LinksPage() {
   const [links, setLinks] = useState([]);
@@ -9,6 +71,8 @@ export default function LinksPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [filter, setFilter] = useState({ type: '', status: '', lang: '' });
+  const lang = useAdminLang();
+  const t = T[lang];
 
   useEffect(() => {
     setLoading(true);
@@ -28,7 +92,8 @@ export default function LinksPage() {
   }, [page, filter]);
 
   const handleAction = async (id, action) => {
-    if (!confirm(`Confirmer : ${action === 'revoke' ? 'révoquer' : 'régénérer'} ce lien ?`)) return;
+    const msg = action === 'revoke' ? t.confirmRevoke : t.confirmRegen;
+    if (!confirm(msg)) return;
     await fetch(`/api/admin/links/${id}/${action}`, { method: 'PUT' });
     // Refresh
     const params = new URLSearchParams({ page, limit: '20' });
@@ -41,23 +106,23 @@ export default function LinksPage() {
 
   return (
     <div>
-      <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>Gestion des liens</h2>
+      <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>{t.title}</h2>
 
       {/* Filters */}
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
         <select value={filter.type} onChange={(e) => { setFilter({ ...filter, type: e.target.value }); setPage(1); }} style={selectStyle}>
-          <option value="">Tous les types</option>
-          <option value="INFLUENCER">Influenceurs</option>
-          <option value="RESPONDENT">Répondants</option>
+          <option value="">{t.allTypes}</option>
+          <option value="INFLUENCER">{t.influencers}</option>
+          <option value="RESPONDENT">{t.respondents}</option>
         </select>
         <select value={filter.status} onChange={(e) => { setFilter({ ...filter, status: e.target.value }); setPage(1); }} style={selectStyle}>
-          <option value="">Tous les statuts</option>
-          <option value="active">Actifs</option>
-          <option value="expired">Expirés</option>
-          <option value="revoked">Révoqués</option>
+          <option value="">{t.allStatuses}</option>
+          <option value="active">{t.active}</option>
+          <option value="expired">{t.expired}</option>
+          <option value="revoked">{t.revoked}</option>
         </select>
         <select value={filter.lang} onChange={(e) => { setFilter({ ...filter, lang: e.target.value }); setPage(1); }} style={selectStyle}>
-          <option value="">Toutes les langues</option>
+          <option value="">{t.allLangs}</option>
           <option value="fr">FR</option>
           <option value="en">EN</option>
           <option value="ru">RU</option>
@@ -66,28 +131,28 @@ export default function LinksPage() {
       </div>
 
       {loading ? (
-        <p>Chargement...</p>
+        <p>{t.loading}</p>
       ) : (
         <>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', background: '#fff', borderRadius: '10px', overflow: 'hidden', border: '1px solid #e8e5df' }}>
             <thead>
               <tr style={{ background: '#f8f6f1', textAlign: 'left' }}>
-                <th style={th}>Code</th>
-                <th style={th}>Type</th>
-                <th style={th}>Parrain</th>
-                <th style={th}>Filleuls directs</th>
-                <th style={th}>Visites</th>
-                <th style={th}>Statut</th>
-                <th style={th}>Créé le</th>
-                <th style={th}>Expire le</th>
-                <th style={th}>Actions</th>
+                <th style={th}>{t.thCode}</th>
+                <th style={th}>{t.thType}</th>
+                <th style={th}>{t.thReferrer}</th>
+                <th style={th}>{t.thDirectRefs}</th>
+                <th style={th}>{t.thVisits}</th>
+                <th style={th}>{t.thStatus}</th>
+                <th style={th}>{t.thCreated}</th>
+                <th style={th}>{t.thExpires}</th>
+                <th style={th}>{t.thActions}</th>
               </tr>
             </thead>
             <tbody>
               {links.map((link) => (
                 <tr key={link.id} style={{ borderTop: '1px solid #eee' }}>
                   <td style={td}><code>{link.code}</code></td>
-                  <td style={td}>{link.nodeType === 'INFLUENCER' ? 'Influenceur' : 'Répondant'}</td>
+                  <td style={td}>{link.nodeType === 'INFLUENCER' ? t.typeInfluencer : t.typeRespondent}</td>
                   <td style={td}>{link.parentCode || '—'}</td>
                   <td style={td}>{link.directFilleuls}</td>
                   <td style={td}>{link.visitCount}</td>
@@ -99,19 +164,19 @@ export default function LinksPage() {
                       background: link.isActive && (!link.expiresAt || new Date(link.expiresAt) > new Date()) ? '#e8f5e9' : '#ffeaea',
                       color: link.isActive && (!link.expiresAt || new Date(link.expiresAt) > new Date()) ? '#2e7d32' : '#c62828',
                     }}>
-                      {link.isActive && (!link.expiresAt || new Date(link.expiresAt) > new Date()) ? 'Actif' : 'Inactif'}
+                      {link.isActive && (!link.expiresAt || new Date(link.expiresAt) > new Date()) ? t.activeBadge : t.inactiveBadge}
                     </span>
                   </td>
                   <td style={td}>{new Date(link.createdAt).toLocaleDateString('fr-FR')}</td>
                   <td style={td}>{link.expiresAt ? new Date(link.expiresAt).toLocaleDateString('fr-FR') : '—'}</td>
                   <td style={td}>
-                    <button onClick={() => handleAction(link.id, 'revoke')} style={actionBtn}>Révoquer</button>
-                    <button onClick={() => handleAction(link.id, 'regenerate')} style={actionBtn}>Régénérer</button>
+                    <button onClick={() => handleAction(link.id, 'revoke')} style={actionBtn}>{t.revoke}</button>
+                    <button onClick={() => handleAction(link.id, 'regenerate')} style={actionBtn}>{t.regenerate}</button>
                   </td>
                 </tr>
               ))}
               {links.length === 0 && (
-                <tr><td colSpan={9} style={{ ...td, textAlign: 'center', color: '#999' }}>Aucun lien trouvé</td></tr>
+                <tr><td colSpan={9} style={{ ...td, textAlign: 'center', color: '#999' }}>{t.noLinks}</td></tr>
               )}
             </tbody>
           </table>

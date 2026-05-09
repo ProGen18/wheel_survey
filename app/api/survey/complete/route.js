@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
+import { guardApi } from '@/lib/api-guard';
 import { prisma } from '@/lib/prisma';
 import { buildReferralLink } from '@/lib/referral';
 
 export const runtime = 'nodejs';
 
 export async function POST(req) {
+  const guard = guardApi(req, { type: 'survey_post' });
+  if (guard) return guard;
+
   let body = {};
   try {
     body = await req.json();

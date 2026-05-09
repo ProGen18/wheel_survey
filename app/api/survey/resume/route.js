@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
+import { guardApi } from '@/lib/api-guard';
 import { prisma } from '@/lib/prisma';
 
 export const runtime = 'nodejs';
 
 export async function GET(req) {
+  const guard = guardApi(req, { type: 'survey_get', checkOrigin: false });
+  if (guard) return guard;
+
   const token = req.nextUrl.searchParams.get('token');
   if (!token) {
     return NextResponse.json({ error: 'missing_token' }, { status: 400 });

@@ -1,6 +1,64 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useAdminLang } from '../layout';
+
+const T = {
+  fr: {
+    title: 'Influenceurs',
+    createBtn: '+ Créer un influenceur',
+    searchPlaceholder: 'Rechercher par code ou label...',
+    search: 'Rechercher',
+    modalTitle: 'Créer un influenceur',
+    codeLabel: 'Code *',
+    labelField: 'Label',
+    expiration: 'Expiration',
+    create: 'Créer',
+    cancel: 'Annuler',
+    thCode: 'Code',
+    thLabel: 'Label',
+    thLang: 'Langue',
+    thDirectRefs: 'Filleuls directs',
+    thTotalRefs: 'Filleuls totaux',
+    thVisits: 'Visites',
+    thStatus: 'Statut',
+    thCreated: 'Créé le',
+    thExpires: 'Expire le',
+    thActions: 'Actions',
+    active: 'Actif',
+    inactive: 'Inactif',
+    viewTree: 'Voir arbre',
+    creationError: 'Erreur à la création',
+    loading: 'Chargement...',
+  },
+  en: {
+    title: 'Influencers',
+    createBtn: '+ Create influencer',
+    searchPlaceholder: 'Search by code or label...',
+    search: 'Search',
+    modalTitle: 'Create influencer',
+    codeLabel: 'Code *',
+    labelField: 'Label',
+    expiration: 'Expiration',
+    create: 'Create',
+    cancel: 'Cancel',
+    thCode: 'Code',
+    thLabel: 'Label',
+    thLang: 'Language',
+    thDirectRefs: 'Direct referrals',
+    thTotalRefs: 'Total referrals',
+    thVisits: 'Visits',
+    thStatus: 'Status',
+    thCreated: 'Created',
+    thExpires: 'Expires',
+    thActions: 'Actions',
+    active: 'Active',
+    inactive: 'Inactive',
+    viewTree: 'View tree',
+    creationError: 'Creation error',
+    loading: 'Loading...',
+  },
+};
 
 export default function InfluencersPage() {
   const [items, setItems] = useState([]);
@@ -9,6 +67,8 @@ export default function InfluencersPage() {
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(false);
+  const lang = useAdminLang();
+  const t = T[lang];
 
   const fetchData = () => {
     setLoading(true);
@@ -43,7 +103,7 @@ export default function InfluencersPage() {
       fetchData();
     } else {
       const data = await res.json();
-      alert(data.error || 'Erreur à la création');
+      alert(data.error || t.creationError);
     }
   };
 
@@ -52,7 +112,7 @@ export default function InfluencersPage() {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Influenceurs</h2>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>{t.title}</h2>
         <button onClick={() => setShowCreate(true)} style={{
           padding: '0.6rem 1.25rem',
           background: 'var(--ink)',
@@ -63,7 +123,7 @@ export default function InfluencersPage() {
           fontWeight: 600,
           fontFamily: 'inherit',
         }}>
-          + Créer un influenceur
+          {t.createBtn}
         </button>
       </div>
 
@@ -71,14 +131,14 @@ export default function InfluencersPage() {
       <div style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem' }}>
         <input
           type="text"
-          placeholder="Rechercher par code ou label..."
+          placeholder={t.searchPlaceholder}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && fetchData()}
           style={{ padding: '0.5rem 0.75rem', border: '1px solid #d4cfc8', borderRadius: '6px', fontSize: '0.85rem', width: '300px', fontFamily: 'inherit' }}
         />
         <button onClick={fetchData} style={{ padding: '0.5rem 1rem', border: '1px solid #d4cfc8', borderRadius: '6px', background: '#fff', cursor: 'pointer', fontFamily: 'inherit' }}>
-          Rechercher
+          {t.search}
         </button>
       </div>
 
@@ -86,38 +146,38 @@ export default function InfluencersPage() {
       {showCreate && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
           <form onSubmit={handleCreate} style={{ background: '#fff', padding: '2rem', borderRadius: '12px', width: '400px', maxWidth: '90vw' }}>
-            <h3 style={{ marginBottom: '1rem' }}>Créer un influenceur</h3>
-            <label style={lbl}>Code *</label>
+            <h3 style={{ marginBottom: '1rem' }}>{t.modalTitle}</h3>
+            <label style={lbl}>{t.codeLabel}</label>
             <input name="code" required style={inp} placeholder="ex: INFLU_ALICE" />
-            <label style={lbl}>Label</label>
+            <label style={lbl}>{t.labelField}</label>
             <input name="label" style={inp} placeholder="Nom ou description" />
-            <label style={lbl}>Expiration</label>
+            <label style={lbl}>{t.expiration}</label>
             <input name="expiresAt" type="date" style={inp} />
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-              <button type="submit" style={{ padding: '0.6rem 1.25rem', background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontFamily: 'inherit' }}>Créer</button>
-              <button type="button" onClick={() => setShowCreate(false)} style={{ padding: '0.6rem 1.25rem', border: '1px solid #ddd', borderRadius: '8px', background: '#fff', cursor: 'pointer', fontFamily: 'inherit' }}>Annuler</button>
+              <button type="submit" style={{ padding: '0.6rem 1.25rem', background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontFamily: 'inherit' }}>{t.create}</button>
+              <button type="button" onClick={() => setShowCreate(false)} style={{ padding: '0.6rem 1.25rem', border: '1px solid #ddd', borderRadius: '8px', background: '#fff', cursor: 'pointer', fontFamily: 'inherit' }}>{t.cancel}</button>
             </div>
           </form>
         </div>
       )}
 
       {loading ? (
-        <p>Chargement...</p>
+        <p>{t.loading}</p>
       ) : (
         <>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', background: '#fff', borderRadius: '10px', overflow: 'hidden', border: '1px solid #e8e5df' }}>
             <thead>
               <tr style={{ background: '#f8f6f1', textAlign: 'left' }}>
-                <th style={th}>Code</th>
-                <th style={th}>Label</th>
-                <th style={th}>Langue</th>
-                <th style={th}>Filleuls directs</th>
-                <th style={th}>Filleuls totaux</th>
-                <th style={th}>Visites</th>
-                <th style={th}>Statut</th>
-                <th style={th}>Créé le</th>
-                <th style={th}>Expire le</th>
-                <th style={th}>Actions</th>
+                <th style={th}>{t.thCode}</th>
+                <th style={th}>{t.thLabel}</th>
+                <th style={th}>{t.thLang}</th>
+                <th style={th}>{t.thDirectRefs}</th>
+                <th style={th}>{t.thTotalRefs}</th>
+                <th style={th}>{t.thVisits}</th>
+                <th style={th}>{t.thStatus}</th>
+                <th style={th}>{t.thCreated}</th>
+                <th style={th}>{t.thExpires}</th>
+                <th style={th}>{t.thActions}</th>
               </tr>
             </thead>
             <tbody>
@@ -133,13 +193,13 @@ export default function InfluencersPage() {
                     <td style={td}>{inf.visitCount}</td>
                     <td style={td}>
                       <span style={{ padding: '0.15rem 0.5rem', borderRadius: '20px', fontSize: '0.75rem', background: isActive ? '#e8f5e9' : '#ffeaea', color: isActive ? '#2e7d32' : '#c62828' }}>
-                        {isActive ? 'Actif' : 'Inactif'}
+                        {isActive ? t.active : t.inactive}
                       </span>
                     </td>
                     <td style={td}>{new Date(inf.createdAt).toLocaleDateString('fr-FR')}</td>
                     <td style={td}>{inf.expiresAt ? new Date(inf.expiresAt).toLocaleDateString('fr-FR') : '—'}</td>
                     <td style={td}>
-                      <Link href={`/admin/influencers/${inf.id}`} style={{ fontSize: '0.8rem', color: 'var(--ember)' }}>Voir arbre</Link>
+                      <Link href={`/admin/influencers/${inf.id}`} style={{ fontSize: '0.8rem', color: 'var(--ember)' }}>{t.viewTree}</Link>
                     </td>
                   </tr>
                 );

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
+import { safeJson } from '@/lib/json';
 
 export const runtime = 'nodejs';
 
@@ -30,37 +32,40 @@ export async function GET(req) {
     prisma.referralNode.count({ where }),
   ]);
 
-  // Enrich with total descendants
-  const enriched = await Promise.all(
-    items.map(async (inf) => {
-      const result = await prisma.$queryRaw`
-        SELECT COUNT(*)::int AS total
-        FROM "ReferralNode"
-        WHERE id IN (
-          WITH RECURSIVE d AS (
-            SELECT id FROM "ReferralNode" WHERE "parentId" = ${inf.id}
-            UNION ALL
-            SELECT c.id FROM "ReferralNode" c INNER JOIN d ON c."parentId" = d.id
-          )
-          SELECT id FROM d
-        )
-      `;
-      return {
-        id: inf.id,
-        code: inf.code,
-        label: inf.label,
-        lang: inf.lang,
-        isActive: inf.isActive,
-        visitCount: inf.visitCount,
-        createdAt: inf.createdAt,
-        expiresAt: inf.expiresAt,
-        directFilleuls: inf._count.children,
-        totalFilleuls: result?.[0]?.total || 0,
-      };
-    })
-  );
+  const totalsByRoot = new Map();
+  if (items.length > 0) {
+    const ids = items.map((i) => i.id);
+    const rows = await prisma.$queryRaw`
+      WITH RECURSIVE descendants AS (
+        SELECT c.id, c."parentId" AS root
+        FROM "ReferralNode" c
+        WHERE c."parentId" IN (${Prisma.join(ids)})
+        UNION ALL
+        SELECT c.id, d.root
+        FROM "ReferralNode" c
+        INNER JOIN descendants d ON c."parentId" = d.id
+      )
+      SELECT root, COUNT(*)::int AS total
+      FROM descendants
+      GROUP BY root
+    `;
+    for (const r of rows) totalsByRoot.set(r.root, Number(r.total));
+  }
 
-  return NextResponse.json({
+  const enriched = items.map((inf) => ({
+    id: inf.id,
+    code: inf.code,
+    label: inf.label,
+    lang: inf.lang,
+    isActive: inf.isActive,
+    visitCount: inf.visitCount,
+    createdAt: inf.createdAt,
+    expiresAt: inf.expiresAt,
+    directFilleuls: inf._count.children,
+    totalFilleuls: totalsByRoot.get(inf.id) || 0,
+  }));
+
+  return safeJson({
     items: enriched,
     total,
     page,

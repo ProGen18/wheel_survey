@@ -1,8 +1,15 @@
 'use client';
 import React from 'react';
 
-export default function ChainView({ chain = [] }) {
-  if (!chain || chain.length === 0) return <p style={{ color: '#999', fontStyle: 'italic' }}>Chaîne vide</p>;
+const TXT = {
+  fr: { empty: 'Chaîne vide', influencer: 'Influenceur', respondent: 'Répondant' },
+  en: { empty: 'Empty chain', influencer: 'Influencer', respondent: 'Respondent' },
+};
+
+export default function ChainView({ chain = [], lang = 'fr' }) {
+  const t = TXT[lang] || TXT.fr;
+
+  if (!chain || chain.length === 0) return <p style={{ color: '#999', fontStyle: 'italic' }}>{t.empty}</p>;
 
   return (
     <div style={{
@@ -29,7 +36,7 @@ export default function ChainView({ chain = [] }) {
               {node.code}
             </div>
             <div style={{ fontSize: '0.7rem', color: '#888' }}>
-              {node.nodeType === 'INFLUENCER' ? 'Influenceur' : 'Répondant'}
+              {node.nodeType === 'INFLUENCER' ? t.influencer : t.respondent}
               {node.label ? ` — ${node.label}` : ''}
             </div>
           </div>
