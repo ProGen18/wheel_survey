@@ -483,4 +483,3 @@ npm run dev
 
 **Auteurs :** Huihui Ding, Hanane El Bahraoui & Matthieu Manant  
 **Développeur :** Stéphane TALAB  
-**Institution :** RITM — Université Paris-Saclay
