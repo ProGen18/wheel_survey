@@ -1190,6 +1190,9 @@ body::before {
   .animated-euc .euc-hub-spin {
     animation: none;
   }
+  .cookie-banner {
+    transition: none;
+  }
 }
 
 /* ---------------------------------------------------------------- ROTATING WHEEL ANIMATION */
@@ -1299,10 +1302,15 @@ body::before {
   border-color: var(--ink-mute);
 }
 
+.cookie-btn:focus-visible {
+  outline: 2px solid var(--ember);
+  outline-offset: 2px;
+}
+}
+
 /* Soulève le ProgressRing quand le bandeau est visible */
 body:has(.cookie-banner:not(.is-dismissed)) .progress-ring {
   bottom: calc(1.5rem + 64px);
-  transition: bottom 0.35s var(--ease);
 }
 
 [data-theme="dark"] .cookie-banner {
@@ -1316,6 +1324,9 @@ body:has(.cookie-banner:not(.is-dismissed)) .progress-ring {
     align-items: flex-start;
     gap: 0.75rem;
     padding: 0.75rem 1rem;
+  }
+  body:has(.cookie-banner:not(.is-dismissed)) .progress-ring {
+    bottom: calc(1.5rem + 96px);
   }
 }
 
