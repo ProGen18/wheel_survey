@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { I18N } from './i18n';
 
 const STORAGE_KEY = 'gyro_cookies_ok';
 
 export default function CookieBanner() {
-  const [visible, setVisible] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [lang, setLang] = useState('fr');
+  const timeoutRef = useRef(null);
 
   useEffect(() => {
     try {
@@ -21,16 +22,18 @@ export default function CookieBanner() {
       .toLowerCase();
     if (supported.includes(bl)) setLang(bl);
 
-    setVisible(true);
+    setMounted(true);
+
+    return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
   }, []);
 
   const handleDismiss = () => {
     setDismissed(true);
     try { localStorage.setItem(STORAGE_KEY, '1'); } catch (_) {}
-    setTimeout(() => setVisible(false), 380);
+    timeoutRef.current = setTimeout(() => setMounted(false), 380);
   };
 
-  if (!visible) return null;
+  if (!mounted) return null;
 
   const T = I18N[lang]?.cookie ?? I18N.fr.cookie;
 
