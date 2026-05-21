@@ -44,61 +44,72 @@ import { WheelLogo } from './icons';
 // ─────────────────────────────────────────────────────────────────────────────
 
 const __TWEAKS_STYLE = `
-  @keyframes twk-entry {
-    from { opacity: 0; transform: scale(0.95) translateY(10px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
-  }
-  .twk-panel{position:fixed;right:16px;bottom:16px;z-index:2147483646;width:280px;
-    max-height:calc(100vh - 32px);display:flex;flex-direction:column;
-    background:rgba(250,249,247,.78);color:#29261b;
+  /* ── Drawer latéral gauche ───────────────────────────────── */
+  .twk-panel{position:fixed;top:0;left:0;bottom:0;z-index:2147483646;
+    width:300px;max-width:90vw;display:flex;flex-direction:column;
+    background:rgba(250,249,247,.92);color:#29261b;
     -webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);
-    border:.5px solid rgba(255,255,255,.6);border-radius:14px;
-    box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 12px 40px rgba(0,0,0,.18);
+    border-right:.5px solid rgba(0,0,0,.08);
+    box-shadow:12px 0 40px rgba(0,0,0,.14);
     font:11.5px/1.4 ui-sans-serif,system-ui,-apple-system,sans-serif;overflow:hidden;
-    animation: twk-entry 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    transform-origin: bottom right; }
+    transform: translateX(-100%);
+    transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .twk-panel.is-open { transform: translateX(0); }
   .twk-hd{display:flex;align-items:center;justify-content:space-between;
-    padding:10px 8px 10px 14px;cursor:move;user-select:none}
+    padding:14px 10px 14px 16px;user-select:none;
+    border-bottom:.5px solid rgba(0,0,0,.06)}
   .twk-hd b{font-size:12px;font-weight:600;letter-spacing:.01em; transition: opacity 0.2s; }
   .twk-x{appearance:none;border:0;background:transparent;color:rgba(41,38,27,.55);
-    width:22px;height:22px;border-radius:6px;cursor:default;font-size:13px;line-height:1;
+    width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:15px;line-height:1;
     display:flex;align-items:center;justify-content:center;transition:all .2s}
-  .twk-x:hover { color: #f44; background: rgba(0,0,0,.05); transform: scale(1.1); }
-  .twk-min-btn { appearance:none;border:0;background:transparent;color:rgba(41,38,27,.55);
-    width:22px;height:22px;border-radius:6px;cursor:default;font-size:10px;
-    display:flex;align-items:center;justify-content:center;transition:all .2s}
-  .twk-min-btn:hover { color: var(--ember, #d94d1a); background: rgba(0,0,0,.05); }
+  .twk-x:hover { color: var(--ember, #d94d1a); background: rgba(0,0,0,.05); }
   .twk-hd-actions { display: flex; align-items: center; gap: 2px; }
-  .twk-panel.minimized { height: auto !important; width: 200px; transform: scale(0.95); opacity: 0.9; }
-  .twk-panel.minimized .twk-body { opacity: 0; pointer-events: none; height: 0; padding: 0; }
-  .twk-hd-title { flex: 1; display: flex; align-items: center; gap: 6px; cursor: pointer; }
-  .twk-hd-title:hover b { color: var(--ember, #d94d1a); }
+  .twk-hd-title { flex: 1; display: flex; align-items: center; gap: 8px; }
 
-  .twk-btn-open {
+  /* ── Pill verticale sur le bord gauche (état fermé) ──────── */
+  .twk-tab {
     position: fixed;
-    right: 16px; bottom: 16px;
+    left: 0; top: 50%;
+    transform: translateY(-50%);
     z-index: 2147483646;
     background: var(--ink, #1a1a1a);
     color: var(--paper, #fff);
-    border: none; border-radius: 50px;
-    padding: 8px 14px;
+    border: none;
+    border-radius: 0 8px 8px 0;
+    padding: 12px 8px;
     font-family: var(--f-mono, monospace);
-    font-size: 11px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.1em;
+    font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.18em;
     cursor: pointer;
-    display: flex; align-items: center; gap: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    box-shadow: 2px 4px 14px rgba(0,0,0,.25);
     transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    writing-mode: vertical-rl;
+    opacity: .55;
   }
-  .twk-btn-open:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(217, 77, 26, 0.5);
+  .twk-tab:hover {
+    opacity: 1;
+    padding-left: 12px;
     background: var(--ember, #d94d1a);
   }
-  .twk-btn-open .logo-wheel { 
-    display: flex; align-items: center; justify-content: center; 
-    filter: drop-shadow(0 0 4px rgba(255,255,255,0.3));
+  .twk-tab .logo-wheel {
+    writing-mode: horizontal-tb;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .twk-tab-label { transform: rotate(180deg); }
+
+  /* ── Scrim léger (cliquer pour fermer) ───────────────────── */
+  .twk-scrim {
+    position: fixed; inset: 0; z-index: 2147483645;
+    background: transparent;
+    opacity: 0;
+    pointer-events: none;
+    transition: background .25s, opacity .25s;
+  }
+  .twk-scrim.is-open {
+    background: rgba(0,0,0,.08);
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .twk-body{padding:2px 14px 14px;display:flex;flex-direction:column;gap:10px;
@@ -231,37 +242,7 @@ export function useTweaks(defaults) {
 // flips off in lockstep; the host echoes __deactivate_edit_mode back which
 // is what actually hides the panel.
 export function TweaksPanel({ title = 'Tweaks', pct = 0, children }) {
-  const [open, setOpen] = React.useState(true);
-  const [minimized, setMinimized] = React.useState(false);
-  const dragRef = React.useRef(null);
-  const offsetRef = React.useRef({ x: 16, y: 16 });
-  const PAD = 16;
-
-  const clampToViewport = React.useCallback(() => {
-    const panel = dragRef.current;
-    if (!panel) return;
-    const w = panel.offsetWidth, h = panel.offsetHeight;
-    const maxRight = Math.max(PAD, window.innerWidth - w - PAD);
-    const maxBottom = Math.max(PAD, window.innerHeight - h - PAD);
-    offsetRef.current = {
-      x: Math.min(maxRight, Math.max(PAD, offsetRef.current.x)),
-      y: Math.min(maxBottom, Math.max(PAD, offsetRef.current.y)),
-    };
-    panel.style.right = offsetRef.current.x + 'px';
-    panel.style.bottom = offsetRef.current.y + 'px';
-  }, []);
-
-  React.useEffect(() => {
-    if (!open) return;
-    clampToViewport();
-    if (typeof ResizeObserver === 'undefined') {
-      window.addEventListener('resize', clampToViewport);
-      return () => window.removeEventListener('resize', clampToViewport);
-    }
-    const ro = new ResizeObserver(clampToViewport);
-    ro.observe(document.documentElement);
-    return () => ro.disconnect();
-  }, [open, clampToViewport, minimized]);
+  const [open, setOpen] = React.useState(false);
 
   React.useEffect(() => {
     const onMsg = (e) => {
@@ -274,85 +255,65 @@ export function TweaksPanel({ title = 'Tweaks', pct = 0, children }) {
     return () => window.removeEventListener('message', onMsg);
   }, []);
 
-  const dismiss = (e) => {
-    e.stopPropagation();
+  React.useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open]);
+
+  const dismiss = () => {
     setOpen(false);
     window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*');
   };
 
-  const toggleMinimize = (e) => {
-    e.stopPropagation();
-    setMinimized(!minimized);
-  };
-
-  const onDragStart = (e) => {
-    const panel = dragRef.current;
-    if (!panel) return;
-    const r = panel.getBoundingClientRect();
-    const sx = e.clientX, sy = e.clientY;
-    const startRight = window.innerWidth - r.right;
-    const startBottom = window.innerHeight - r.bottom;
-    const move = (ev) => {
-      offsetRef.current = {
-        x: startRight - (ev.clientX - sx),
-        y: startBottom - (ev.clientY - sy),
-      };
-      clampToViewport();
-    };
-    const up = () => {
-      window.removeEventListener('mousemove', move);
-      window.removeEventListener('mouseup', up);
-    };
-    window.addEventListener('mousemove', move);
-    window.addEventListener('mouseup', up);
-  };
-
-  if (!open) {
-    return (
-      <>
-        <style>{__TWEAKS_STYLE}</style>
-        <button className="twk-btn-open" onClick={() => setOpen(true)}>
-          <div className="logo-wheel"><WheelLogo size={16} spinning /></div>
-          <span>Tweeks</span>
-        </button>
-      </>
-    );
-  }
+  const R = 8;
+  const C = 2 * Math.PI * R;
+  const dashOffset = C - (pct / 100) * C;
 
   return (
     <>
       <style>{__TWEAKS_STYLE}</style>
-      <div ref={dragRef} className={`twk-panel ${minimized ? 'minimized' : ''}`}
-           style={{ right: offsetRef.current.x, bottom: offsetRef.current.y }}>
-        <div className="twk-hd" onMouseDown={onDragStart}>
-          <div className="twk-hd-title" onClick={toggleMinimize}>
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" 
-                 style={{ transform: minimized ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
-              <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+
+      <button
+        className="twk-tab"
+        onClick={() => setOpen(true)}
+        aria-label="Ouvrir le panneau Tweaks"
+        style={{ visibility: open ? 'hidden' : 'visible' }}
+      >
+        <span className="logo-wheel"><WheelLogo size={14} spinning /></span>
+        <span className="twk-tab-label">{title}</span>
+      </button>
+
+      <div
+        className={`twk-scrim ${open ? 'is-open' : ''}`}
+        onClick={dismiss}
+        aria-hidden="true"
+      />
+
+      <aside
+        className={`twk-panel ${open ? 'is-open' : ''}`}
+        role="dialog"
+        aria-label={title}
+        aria-hidden={!open}
+      >
+        <div className="twk-hd">
+          <div className="twk-hd-title">
             <b>{title}</b>
-            {(() => {
-              const R = 8; const C = 2 * Math.PI * R;
-              const offset = C - (pct / 100) * C;
-              return (
-                <svg width="20" height="20" viewBox="0 0 20 20" style={{ marginLeft: 5, flexShrink: 0 }}>
-                  <circle cx="10" cy="10" r={R} fill="none" stroke="rgba(41,38,27,.15)" strokeWidth="2.5" />
-                  <circle cx="10" cy="10" r={R} fill="none" stroke="var(--ember, #d94d1a)" strokeWidth="2.5"
-                    strokeDasharray={C} strokeDashoffset={offset}
-                    strokeLinecap="round"
-                    style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%', transition: 'stroke-dashoffset 0.4s ease' }} />
-                </svg>
-              );
-            })()}
+            <svg width="20" height="20" viewBox="0 0 20 20" style={{ flexShrink: 0 }}>
+              <circle cx="10" cy="10" r={R} fill="none" stroke="rgba(41,38,27,.15)" strokeWidth="2.5" />
+              <circle cx="10" cy="10" r={R} fill="none" stroke="var(--ember, #d94d1a)" strokeWidth="2.5"
+                strokeDasharray={C} strokeDashoffset={dashOffset}
+                strokeLinecap="round"
+                style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%', transition: 'stroke-dashoffset 0.4s ease' }} />
+            </svg>
           </div>
           <div className="twk-hd-actions">
-            <button className="twk-min-btn" onClick={toggleMinimize} title={minimized ? "Expand" : "Minimize"}>
-              {minimized ? "▢" : "—"}
-            </button>
+            <button className="twk-x" onClick={dismiss} title="Fermer (Esc)" aria-label="Fermer">×</button>
           </div>
         </div>
-        {!minimized && <div className="twk-body">{children}</div>}
-      </div>
+        <div className="twk-body">{children}</div>
+      </aside>
     </>
   );
 }

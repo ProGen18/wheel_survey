@@ -80,8 +80,9 @@ export const I18N = {
     progress_label: "Parcouru",
     answer_to_continue: "Répondez pour dévoiler la suite",
     cookie: {
+      label: "Information sur les cookies",
       text: "Ce site utilise uniquement des cookies strictement nécessaires au fonctionnement et à la sécurité du questionnaire (gestion de session, préférences de langue et navigation dans le formulaire). Aucun cookie publicitaire ou de suivi n'est utilisé. Conformément au RGPD et aux recommandations de la CNIL, ces cookies fonctionnels ne nécessitent pas de consentement préalable.",
-      btn: "Compris",
+      btn: "J'ai compris",
     },
     footer: {
       line: "© Gyroroue 2026 · Enquête académique internationale",
@@ -185,6 +186,7 @@ export const I18N = {
     progress_label: "Complete",
     answer_to_continue: "Answer to reveal the next section",
     cookie: {
+      label: "Cookie information",
       text: "This website only uses strictly necessary cookies required for the operation and security of the survey (session management, language preferences, and form navigation). No advertising or tracking cookies are used. In accordance with the GDPR and CNIL guidelines, these functional cookies do not require prior consent.",
       btn: "Got it",
     },
@@ -310,6 +312,7 @@ export const I18N = {
       ],
     },
     cookie: {
+      label: "Информация о файлах cookie",
       text: "Этот сайт использует только строго необходимые файлы cookie для обеспечения работы и безопасности анкеты (управление сессией, языковые настройки и навигация по форме). Рекламные файлы cookie и файлы cookie для отслеживания не используются. В соответствии с GDPR и рекомендациями CNIL, функциональные файлы cookie не требуют предварительного согласия.",
       btn: "Понятно",
     },
@@ -415,14 +418,9 @@ export const I18N = {
       ],
     },
     cookie: {
+      label: "Cookie 信息",
       text: "本网站仅使用问卷运行和安全所必需的 Cookie（会话管理、语言偏好和表单导航）。不使用任何广告或跟踪 Cookie。根据 GDPR 和 CNIL 指南，这些功能性 Cookie 无需事先同意。",
       btn: "知道了",
     },
-  },
-  ar: {
-    cookie: {
-      text: "يستخدم هذا الموقع ملفات تعريف الارتباط الضرورية فقط لتشغيل الاستبيان وأمانه (إدارة الجلسة وتفضيلات اللغة والتنقل في النموذج). لا تُستخدم أي ملفات تعريف ارتباط إعلانية أو تتبعية. وفقًا للائحة GDPR وإرشادات CNIL، لا تتطلب ملفات تعريف الارتباط الوظيفية هذه موافقة مسبقة.",
-      btn: "مفهوم",
-    },
-  }
+  },  
 };

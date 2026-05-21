@@ -12,6 +12,7 @@ export const TWEAK_DEFAULTS = {
 };
 
 const SUPPORTED_LANGS = ['fr', 'en', 'ru', 'zh'];
+const LANGUAGE_CHANGE_EVENT = 'gyro:languagechange';
 
 function detectBrowserLang() {
   if (typeof navigator === 'undefined') return 'en';
@@ -56,6 +57,18 @@ export function SurveyTweaks({ tweaks, setTweaks, pct = 0 }) {
     document.documentElement.dataset.font = tweaks.font;
     document.documentElement.dataset.density = tweaks.density;
   }, [tweaks.theme, tweaks.font, tweaks.density]);
+
+  useEffect(() => {
+    document.documentElement.lang = tweaks.lang;
+    const event = new CustomEvent(LANGUAGE_CHANGE_EVENT, {
+      detail: { lang: tweaks.lang },
+    });
+    window.dispatchEvent(event);
+    const timer = window.setTimeout(() => {
+      window.dispatchEvent(event);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [tweaks.lang]);
 
   return (
     <TweaksPanel title="Tweaks" pct={pct}>

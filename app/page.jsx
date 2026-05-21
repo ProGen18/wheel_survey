@@ -300,6 +300,18 @@ export default function App() {
   const [submitted, setSubmitted] = useState(false);
   const [topbarVisible, setTopbarVisible] = useState(false);
 
+  // Footer global est masqué tant que le questionnaire n'est pas terminé.
+  // On signale l'état au layout via un data-attribute sur <body>.
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.body.dataset.surveyPage = 'true';
+    document.body.dataset.surveySubmitted = submitted ? 'true' : 'false';
+    return () => {
+      delete document.body.dataset.surveyPage;
+      delete document.body.dataset.surveySubmitted;
+    };
+  }, [submitted]);
+
   // Autosave / referral
   const [sessionToken, setSessionToken] = useState(null);
   const [referralCode, setReferralCode] = useState(null);

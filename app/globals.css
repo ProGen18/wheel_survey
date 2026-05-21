@@ -1739,6 +1739,11 @@ body:has(.cookie-banner:not(.is-dismissed)) .progress-ring {
   margin-top: auto;
 }
 
+/* Sur la page du questionnaire, le footer ne s'affiche qu'une fois soumis. */
+body[data-survey-page="true"][data-survey-submitted="false"] .footer {
+  display: none;
+}
+
 .footer-inner {
   max-width: 1100px;
   margin: 0 auto;
