@@ -1250,6 +1250,75 @@ body::before {
   50% { opacity: 0.35; }
 }
 
+/* ---- COOKIE BANNER (RGPD) ---- */
+.cookie-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 45;
+  background: var(--paper-deep);
+  border-top: 1px solid var(--rule);
+  padding: 0.75rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  font-family: var(--f-sans);
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--ink-mute);
+  transform: translateY(0);
+  transition: transform 0.35s var(--ease);
+}
+
+.cookie-banner.is-dismissed {
+  transform: translateY(100%);
+}
+
+.cookie-banner p {
+  flex: 1;
+  margin: 0;
+}
+
+.cookie-btn {
+  flex-shrink: 0;
+  padding: 0.4rem 1rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-sans);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+
+.cookie-btn:hover {
+  background: var(--paper-soft);
+  border-color: var(--ink-mute);
+}
+
+/* Soulève le ProgressRing quand le bandeau est visible */
+body:has(.cookie-banner:not(.is-dismissed)) .progress-ring {
+  bottom: calc(1.5rem + 64px);
+  transition: bottom 0.35s var(--ease);
+}
+
+[data-theme="dark"] .cookie-banner {
+  background: var(--paper-deep);
+  border-color: var(--rule);
+}
+
+@media (max-width: 480px) {
+  .cookie-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+  }
+}
+
 /* ---------------------------------------------------------------- ROUTE/BRANCH BANNER */
 
 .branch-banner {
