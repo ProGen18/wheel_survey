@@ -1306,7 +1306,6 @@ body::before {
   outline: 2px solid var(--ember);
   outline-offset: 2px;
 }
-}
 
 /* Soulève le ProgressRing quand le bandeau est visible */
 body:has(.cookie-banner:not(.is-dismissed)) .progress-ring {
