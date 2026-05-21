@@ -16,7 +16,7 @@ export default function CookieBanner() {
       if (localStorage.getItem(STORAGE_KEY) === '1') return;
     } catch (_) {}
 
-    const supported = ['fr', 'en'];
+    const supported = ['fr', 'en', 'ru', 'zh', 'ar'];
     const bl = (navigator.languages?.[0] ?? navigator.language ?? 'fr')
       .split('-')[0]
       .toLowerCase();
@@ -41,6 +41,7 @@ export default function CookieBanner() {
     <div
       className={`cookie-banner${dismissed ? ' is-dismissed' : ''}`}
       role="note"
+      dir={lang === 'ar' ? 'rtl' : undefined}
       aria-label={lang === 'fr' ? 'Information cookies' : 'Cookie information'}
     >
       <p>{T.text}</p>
