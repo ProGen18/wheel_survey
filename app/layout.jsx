@@ -1,5 +1,4 @@
 import "./globals.css";
-import { CookieProvider } from "@/components/CookieContext";
 import CookieWrapper from "@/components/CookieWrapper";
 
 export const metadata = {
@@ -22,9 +21,7 @@ export default function RootLayout({ children }) {
         <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
       </head>
       <body>
-        <CookieProvider>
-          <CookieWrapper>{children}</CookieWrapper>
-        </CookieProvider>
+        <CookieWrapper>{children}</CookieWrapper>
       </body>
     </html>
   );
